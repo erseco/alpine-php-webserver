@@ -106,7 +106,31 @@ The following example shows how you can add a startup script. This script simply
     ADD logtime.sh /docker-entrypoint-init.d/logtime.sh
 
 
-## Configuration
+## Nginx Configuration
+
+The Nginx configuration is designed to be flexible and easy to customize. By default, the main configuration file is located at `rootfs/etc/nginx/nginx.conf`. 
+
+### Adding Custom Configurations
+
+You can add custom configurations in two ways:
+
+1. **Global Configurations**: Place your configuration files in `/etc/nginx/conf.d/`. These configurations are included globally and affect all server blocks.
+
+2. **Server-Specific Configurations**: For configurations specific to a particular server block, place your files in `/etc/nginx/server-conf.d/`. These are included within the server block, allowing for more granular control.
+
+### Example
+
+To add a custom configuration, create a `.conf` file in the appropriate directory. For example, to add a server-specific rule, you might create a file named `custom-server.conf` in `/etc/nginx/server-conf.d/` with the following content:
+
+```nginx
+# Example custom server configuration
+location /custom {
+    return 200 'Custom server configuration is working!';
+    add_header Content-Type text/plain;
+}
+```
+
+This setup allows you to easily manage and customize your Nginx configurations without modifying the main `nginx.conf` file.
 In [rootfs/etc/](rootfs/etc/) you'll find the default configuration files for Nginx, PHP and PHP-FPM.
 If you want to extend or customize that you can do so by mounting a configuration file in the correct folder;
 
