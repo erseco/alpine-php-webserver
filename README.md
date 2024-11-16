@@ -168,6 +168,9 @@ You can define the next environment variables to change values from NGINX and PH
 | PHP8   | post_max_size           | 8M            | Max size of post data allowed. This setting also affects file upload. To upload large files, this value must be larger than upload_max_filesize. Generally speaking, memory_limit should be larger than post_max_size.                                 |
 | PHP8   | upload_max_filesize     | 2M            | Maximum size of an uploaded file.                                                                                                                                                                                                                      |
 | PHP8   | zlib_output_compression | On            | Whether to transparently compress pages. If this option is set to "On" in php.ini or the Apache configuration, pages are compressed if the browser sends an "Accept-Encoding: gzip" or "deflate" header.                                               |
+| PHP8   | date_timezone | UTC            | Set the Timezone of PHP                                               |
+
+
 
 _Note; Because `-v` requires an absolute path I've added `pwd` in the example to return the absolute path to the current directory_
 
