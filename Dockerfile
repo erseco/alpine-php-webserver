@@ -93,6 +93,7 @@ ENV nginx_root_directory=/var/www/html \
     max_input_time=-1 \
     max_input_vars=1000 \
     memory_limit=128M \
+    date_timezone=UTC \
     post_max_size=8M \
     upload_max_filesize=2M \
     zlib_output_compression=On
