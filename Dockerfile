@@ -4,6 +4,9 @@ FROM ${ARCH}alpine:3.20
 LABEL maintainer="Ernesto Serrano <info@ernesto.es>" \
       description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
 
+# Set SHELL to use pipefail
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
+
 # Install packages
 RUN apk --no-cache add \
         php83 \
@@ -77,9 +80,6 @@ EXPOSE 8080
 # Let runit start nginx & php-fpm
 # Ensure /bin/docker-entrypoint.sh is always executed
 ENTRYPOINT ["/bin/docker-entrypoint.sh"]
-
-# Set SHELL to use pipefail
-SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 # Configure a healthcheck to validate that everything is up&running
 HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-ping || exit 1
