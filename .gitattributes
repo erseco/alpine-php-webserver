@@ -1,0 +1,10 @@
+# Ensure shell scripts retain executable bit
+*.sh text eol=lf
+*.sh binary
+
+# Ensure entrypoint scripts retain executable bit
+**/docker-entrypoint.sh text eol=lf
+**/docker-entrypoint.sh binary
+
+# Default text files to use LF
+* text=auto eol=lf
