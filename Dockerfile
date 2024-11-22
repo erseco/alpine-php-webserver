@@ -1,8 +1,8 @@
 ARG ARCH=
 FROM ${ARCH}alpine:3.20
 
-LABEL Maintainer="Ernesto Serrano <info@ernesto.es>" \
-      Description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
+LABEL maintainer="Ernesto Serrano <info@ernesto.es>" \
+      description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
 
 # Install packages
 RUN apk --no-cache add \
@@ -51,7 +51,7 @@ RUN apk --no-cache add \
             | xargs -r apk info --installed \
             | sort -u \
     )" \
-    && apk add --no-cache $runDeps \
+    && apk add --no-cache "$runDeps" \
     && apk del .gettext \
     && mv /tmp/envsubst /usr/local/bin/ \
 # Remove alpine cache
@@ -78,6 +78,8 @@ EXPOSE 8080
 # Ensure /bin/docker-entrypoint.sh is always executed
 ENTRYPOINT ["/bin/docker-entrypoint.sh"]
 
+# Set SHELL to use pipefail
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 # Configure a healthcheck to validate that everything is up&running
 HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-ping || exit 1
