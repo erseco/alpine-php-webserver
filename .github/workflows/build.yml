@@ -15,7 +15,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-          ignore: DL4006
+          ignore: DL3018 # Ignore the APK Pin versions check 
 
       # Prepare variables for building and tagging the image
       - name: Prepare variables
