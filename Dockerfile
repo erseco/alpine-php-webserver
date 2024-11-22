@@ -5,7 +5,7 @@ LABEL maintainer="Ernesto Serrano <info@ernesto.es>" \
       description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
 
 # Set SHELL to use pipefail
-SHELL ["/bin/ash", "-o", "pipefail", "-c"]
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
 
 # Install packages
 RUN apk --no-cache add \
