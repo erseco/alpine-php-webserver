@@ -169,6 +169,7 @@ You can define the next environment variables to change values from NGINX and PH
 | PHP8   | upload_max_filesize     | 2M            | Maximum size of an uploaded file.                                                                                                                                                                                                                      |
 | PHP8   | zlib_output_compression | On            | Whether to transparently compress pages. If this option is set to "On" in php.ini or the Apache configuration, pages are compressed if the browser sends an "Accept-Encoding: gzip" or "deflate" header.                                               |
 | PHP8   | date_timezone           | UTC           | Sets the PHP timezone configuration (date.timezone) in custom.ini. Accepts standard PHP timezone identifiers (e.g., 'America/New_York', 'Europe/London'). See [PHP timezones](https://www.php.net/manual/en/timezones.php) for valid values. |
+| PHP8   | intl_default_locale     | en_US         | If you want to change the [PHP locale](https://www.php.net/manual/en/class.locale.php) for the entire application or server globally (e.g. in php.ini), you can set the intl.default_locale directives (e.g. en_US or de_DE) |
 
 _Note; Because `-v` requires an absolute path I've added `pwd` in the example to return the absolute path to the current directory_
 
