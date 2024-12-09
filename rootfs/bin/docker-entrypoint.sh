@@ -29,12 +29,12 @@ mv "$tmpfile" /etc/nginx/nginx.conf
 
 # Replace ENV vars in php configuration files
 tmpfile=$(mktemp)
-cat /etc/php83/conf.d/custom.ini | envsubst "$(env | cut -d= -f1 | sed -e 's/^/$/')" | tee "$tmpfile" > /dev/null
-mv "$tmpfile" /etc/php83/conf.d/custom.ini
+cat /etc/php84/conf.d/custom.ini | envsubst "$(env | cut -d= -f1 | sed -e 's/^/$/')" | tee "$tmpfile" > /dev/null
+mv "$tmpfile" /etc/php84/conf.d/custom.ini
 
 tmpfile=$(mktemp)
-cat /etc/php83/php-fpm.d/www.conf | envsubst "$(env | cut -d= -f1 | sed -e 's/^/$/')" | tee "$tmpfile" > /dev/null
-mv "$tmpfile" /etc/php83/php-fpm.d/www.conf
+cat /etc/php84/php-fpm.d/www.conf | envsubst "$(env | cut -d= -f1 | sed -e 's/^/$/')" | tee "$tmpfile" > /dev/null
+mv "$tmpfile" /etc/php84/php-fpm.d/www.conf
 
 echo "Starting startup scripts in /docker-entrypoint-init.d ..."
 for script in $(find /docker-entrypoint-init.d/ -executable -type f | sort); do

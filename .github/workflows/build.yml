@@ -76,18 +76,19 @@ jobs:
           docker compose version
           docker compose --file docker-compose.test.yml up --exit-code-from sut --timeout 10 --build
 
-      # Step 8: Build and Push (if not a PR)
+      # Step 8: Build and Push to DockerHub
       - name: Build and push
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.prepare.outputs.tags }}
           platforms: ${{ steps.prepare.outputs.platforms }}
 
       # Step 9: Push to GitHub Container Registry
       - name: Push to GHCR
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
         uses: docker/build-push-action@v6
         with:
           context: .

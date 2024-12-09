@@ -1,9 +1,9 @@
-version: '3.5'
+---
 services:
   app:
     build: .
   sut:
-    image: alpine:3.21
+    image: alpine:latest
     depends_on:
       - app
     command: /tmp/run_tests.sh

@@ -1,20 +1,20 @@
-# Docker PHP-FPM 8.3 & Nginx 1.26 on Alpine Linux 3.20
+# Docker PHP-FPM 8.4 & Nginx 1.26 on Alpine Linux 3.21
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/erseco/alpine-php-webserver.svg)](https://hub.docker.com/r/erseco/alpine-php-webserver/)
 ![Docker Image Size](https://img.shields.io/docker/image-size/erseco/alpine-php-webserver)
-![alpine 3.20](https://img.shields.io/badge/alpine-3.20-brightgreen.svg)
-![nginx 1.26.0](https://img.shields.io/badge/nginx-1.26-brightgreen.svg)
-![php 8.3](https://img.shields.io/badge/php-8.3-brightgreen.svg)
+![alpine 3.21](https://img.shields.io/badge/alpine-3.21-brightgreen.svg)
+![nginx 1.26.2-r3](https://img.shields.io/badge/nginx-1.26.2-r3-brightgreen.svg)
+![php 8.4](https://img.shields.io/badge/php-8.4-brightgreen.svg)
 ![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 
-Example PHP-FPM 8.3 & Nginx 1.26 setup for Docker, build on [Alpine Linux](https://www.alpinelinux.org/).
+Example PHP-FPM 8.4 & Nginx 1.26 setup for Docker, build on [Alpine Linux](https://www.alpinelinux.org/).
 The image is only +/- 25MB large.
 
 Repository: https://github.com/erseco/alpine-php-webserver
 
 * Built on the lightweight and secure Alpine Linux distribution
 * Very small Docker image size (+/-25MB)
-* Uses PHP 8.3 for better performance, lower cpu usage & memory footprint
+* Uses PHP 8.4 for better performance, lower cpu usage & memory footprint
 * Multi-arch support: 386, amd64, arm/v6, arm/v7, arm64, ppc64le, s390x
 * Optimized for 100 concurrent users
 * Optimized to only use resources when there's traffic (by using PHP-FPM's ondemand PM)
@@ -22,8 +22,6 @@ Repository: https://github.com/erseco/alpine-php-webserver
 * The servers Nginx, PHP-FPM run under a non-privileged user (nobody) to make it more secure
 * The logs of all the services are redirected to the output of the Docker container (visible with `docker logs -f <container name>`)
 * Follows the KISS principle (Keep It Simple, Stupid) to make it easy to understand and adjust the image to your needs
-* Also availabe in Apache flavour: `erseco/alpine-php-webserver:apache`
-
 
 ## Usage
 
@@ -46,8 +44,6 @@ Easily serve your local PHP files using Docker Compose. This setup mounts your `
 Here's a simple `docker-compose.yml` example to get you started:
 
 ```yaml
-version: '3.8'
-
 services:
   webserver:
     image: erseco/alpine-php-webserver
