@@ -96,4 +96,5 @@ ENV nginx_root_directory=/var/www/html \
     post_max_size=8M \
     upload_max_filesize=2M \
     zlib_output_compression=On \
-    date_timezone=UTC
+    date_timezone=UTC \
+    intl_default_locale=en_US
