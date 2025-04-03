@@ -14,7 +14,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-
+      security-events: write
+      
     steps:
       # Step 1: Checkout the code
       - name: Checkout
