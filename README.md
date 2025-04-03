@@ -62,7 +62,7 @@ services:
 ### How to Use
 
 1. Save the above `docker-compose.yml` in your project directory.
-2. Run `docker-compose up -d` in your terminal, within the same directory.
+2. Run `docker compose up -d` in your terminal, within the same directory.
 3. Access your PHP application at `http://localhost:8080`.
 
 This method ensures a seamless development process, allowing you to focus on coding rather than setup complexities.
@@ -184,33 +184,47 @@ USER nobody
 RUN composer install --optimize-autoloader --no-interaction --no-progress
 ```
 
-### Building with composer
+### Building with Composer
 
-If you are building an image with source code in it and dependencies managed by composer then the definition can be improved.
-The dependencies should be retrieved by the composer but the composer itself (`/usr/bin/composer`) is not necessary to be included in the image.
+If you are building an image that includes your source code and uses Composer to manage dependencies, it's recommended to install the dependencies during the image build process.
+
+Although Composer (`/usr/bin/composer`) is required to install the dependencies, it does not need to remain in the final image. If you're building for production and want a leaner image, you can uninstall it after running `composer install` using `apk del`.
 
 ```Dockerfile
-FROM composer AS composer
-
-# copying the source directory and install the dependencies with composer
-COPY <your_directory>/ /app
-
-# run composer install to install the dependencies
-RUN composer install \
-  --optimize-autoloader \
-  --no-interaction \
-  --no-progress
-
-# continue stage build with the desired image and copy the source including the
-# dependencies downloaded by composer
 FROM erseco/alpine-php-webserver
-COPY --chown=nginx --from=composer /app /var/www/html
+
+# Switch to root to install Composer
+USER root
+
+# Install Composer and required tools
+RUN apk add --no-cache composer
+
+# Copy application source code
+COPY ./ /var/www/html
+WORKDIR /var/www/html
+
+# Switch to a non-root user for running Composer
+USER nobody
+
+# Install PHP dependencies (requires composer.json)
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-progress
+
+# Optional: remove Composer to reduce image size
+USER root
+RUN apk del composer
+USER nobody
 ```
+
+This keeps the final image clean, reduces its size, and minimizes the available tooling that could be misused in production environments.
 
 ## Running Commands as Root
 
-In certain situations, you might need to run commands as `root` within your Moodle container, for example, to install additional packages. You can do this using the `docker-compose exec` command with the `--user root` option. Here's how:
+In certain situations, you might need to run commands as `root` within your Moodle container, for example, to install additional packages. You can do this using the `docker compose exec` command with the `--user root` option. Here's how:
 
 ```bash
-docker-compose exec --user root alpine-php-webserver sh
+docker compose exec --user root alpine-php-webserver sh
 ```
