@@ -3,9 +3,9 @@ name: buildx
 on:
   push:
     branches:
-      - main
+      - main # beta
     tags:
-      - '*'
+      - '[0-9]+\.[0-9]+\.[0-9]+' # 3.20.7, 3.21.2, 3.22.0… avoid tagging without patch
   pull_request:
 
 jobs:
@@ -17,36 +17,54 @@ jobs:
       security-events: write
       
     steps:
-      # Step 1: Checkout the code
+      # Checkout the code
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags + full history
 
-      # Step 2: Extract metadata and prepare tags
+      # Detect whether the tag commit is also on main
+      - name: Check main ancestry
+        id: mainline
+        if: ${{ github.ref_type == 'tag' }}
+        run: |
+          git fetch origin main --depth=1
+          if git merge-base --is-ancestor origin/main "$GITHUB_SHA"; then
+            echo "is_main=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "is_main=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Extract metadata and prepare tags
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.repository }}
             ghcr.io/${{ github.repository }}
+            docker.io/${{ github.repository }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.ref_type == 'tag' }}
+            # Always from a tag push -> 3.20.7  y  3.20
+            type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref_type == 'tag' }}
+            # latest only if tag belongs to main
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
+            # beta on each push to main (no tag)
             type=raw,value=beta,enable=${{ github.ref == 'refs/heads/main' }}
 
-      # Step 3: Set up QEMU for multi-platform builds
+
+      # Set up QEMU for multi-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
-      # Step 4: Set up Docker Buildx
+      # Set up Docker Buildx
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 5: Login to DockerHub and GHCR
+      # Login to DockerHub and GHCR
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -62,7 +80,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 6: Lint Dockerfile
+      # Lint Dockerfile
       - name: Hadolint Action
         uses: hadolint/hadolint-action@v3.1.0
         with:
@@ -77,19 +95,19 @@ jobs:
           category: hadolint-dockerfile
 
 
-      # Step 7: Debug Build for PRs
+      # Debug Build for PRs
       - name: Debug Build
         if: github.event_name == 'pull_request'
         run: |
           docker buildx build --load .
 
-      # Step 8: Test the built image
+      # Test the built image
       - name: Test
         run: |
           docker compose version
           docker compose --file docker-compose.test.yml up --exit-code-from sut --timeout 10 --build
 
-      # Step 9: Build and Push to both registries in one step
+      # Build and Push to both registries in one step
       - name: Build and push
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
@@ -101,19 +119,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Step 10: Run Trivy vulnerability scanner
+      # Run Trivy vulnerability scanner ── only tags on main
       - name: Run Trivy vulnerability scanner
-        if: github.event_name != 'pull_request'
+        if: github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true'
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.tags && steps.meta.outputs.tags[0] || 'main' }}
+          image-ref: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
           format: 'table'
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
 
-      # Step 11: Update Docker Hub Description
+
+      # Update Docker Hub Description
       - name: Docker Hub Description
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && contains(join(steps.meta.outputs.tags, '\n'), 'latest')
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
