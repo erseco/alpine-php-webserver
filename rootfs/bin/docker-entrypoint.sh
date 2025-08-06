@@ -23,6 +23,9 @@ shutdown() {
 }
 
 # Replace ENV vars in nginx configuration files
+if [ "$DISABLE_DEFAULT_LOCATION" = "true" ]; then
+  sed -i '/location \/ {/,/}/ s/^/#/' /etc/nginx/nginx.conf
+fi
 tmpfile=$(mktemp)
 cat /etc/nginx/nginx.conf | envsubst "$(env | cut -d= -f1 | sed -e 's/^/$/')" | tee "$tmpfile" > /dev/null
 mv "$tmpfile" /etc/nginx/nginx.conf
