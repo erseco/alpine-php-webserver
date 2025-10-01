@@ -133,7 +133,7 @@ jobs:
       # Update Docker Hub Description
       - name: Docker Hub Description
         if: startsWith(github.ref, 'refs/tags/') && contains(join(steps.meta.outputs.tags, '\n'), 'latest')
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
