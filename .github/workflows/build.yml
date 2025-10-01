@@ -9,79 +9,17 @@ on:
   pull_request:
 
 jobs:
-  buildx:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
       security-events: write
-      
     steps:
-      # Checkout the code
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0 # tags + full history
 
-      # Detect whether the tag commit is also on main
-      - name: Check main ancestry
-        id: mainline
-        if: ${{ github.ref_type == 'tag' }}
-        run: |
-          git fetch origin main --depth=1
-          if git merge-base --is-ancestor origin/main "$GITHUB_SHA"; then
-            echo "is_main=true"  >> "$GITHUB_OUTPUT"
-          else
-            echo "is_main=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # Extract metadata and prepare tags
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}
-            docker.io/${{ github.repository }}
-          tags: |
-            # Always from a tag push -> 3.20.7  y  3.20
-            type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
-            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref_type == 'tag' }}
-            # latest only if tag belongs to main
-            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
-            # beta on each push to main (no tag)
-            type=raw,value=beta,enable=${{ github.ref == 'refs/heads/main' }}
-
-
-      # Set up QEMU for multi-platform builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Login to DockerHub and GHCR
-      - name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to GHCR
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Lint Dockerfile
-      - name: Hadolint Action
+      - name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.3.0
         with:
           format: sarif
@@ -94,22 +32,97 @@ jobs:
           sarif_file: hadolint-results.sarif
           category: hadolint-dockerfile
 
+      - name: Lint Shell Scripts
+        uses: ludeeus/action-shellcheck@2.0.0
 
-      # Debug Build for PRs
-      - name: Debug Build
-        if: github.event_name == 'pull_request'
-        run: |
-          docker buildx build --load .
+  test:
+    name: Test on ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      # Test the built image
-      - name: Test
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test the built image
         run: |
+          export BUILD_PLATFORM=${{ matrix.platform }}
           docker compose version
-          docker compose --file docker-compose.test.yml up --exit-code-from sut --timeout 10 --build
+          docker compose --file docker-compose.test.yml up --build --abort-on-container-exit
 
-      # Build and Push to both registries in one step
+  build_and_publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    # Only run on push events to main/tags, not on pull requests
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # tags + full history
+
+      - name: Check main ancestry
+        id: mainline
+        if: ${{ github.ref_type == 'tag' }}
+        run: |
+          git fetch origin main --depth=1
+          if git merge-base --is-ancestor origin/main "$GITHUB_SHA"; then
+            echo "is_main=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "is_main=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+            docker.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref_type == 'tag' }}
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
+            type=raw,value=beta,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push
-        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -119,18 +132,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Run Trivy vulnerability scanner ── only tags on main
       - name: Run Trivy vulnerability scanner
         if: github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true'
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
           format: 'table'
-          exit-code: '0'
+          exit-code: '1'
           severity: 'CRITICAL,HIGH'
 
-
-      # Update Docker Hub Description
       - name: Docker Hub Description
         if: startsWith(github.ref, 'refs/tags/') && contains(join(steps.meta.outputs.tags, '\n'), 'latest')
         uses: peter-evans/dockerhub-description@v4
@@ -138,5 +148,3 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           short-description: ${{ github.event.repository.description }}
-
-

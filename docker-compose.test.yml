@@ -2,10 +2,7 @@
 services:
   app:
     build: .
-  sut:
-    image: alpine:latest
-    depends_on:
-      - app
-    command: /tmp/run_tests.sh
+    platform: ${BUILD_PLATFORM}
     volumes:
-      - "./run_tests.sh:/tmp/run_tests.sh:ro"
+      - ./tests:/tests:ro
+    command: php /tests/test_extensions.php
