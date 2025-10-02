@@ -30,8 +30,7 @@ Repository: https://github.com/erseco/alpine-php-webserver
 - `3.20`, `3.20.7` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.7/Dockerfile))
 <!-- supported-tags:end -->
 
-> **Note**: The [`main` branch](https://github.com/erseco/alpine-php-webserver/blob/main/Dockerfile)  
-> is automatically pushed with the tag **`beta`**.  
+> **Note**: The `main` branch ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/main/Dockerfile)) is automatically pushed with the tag **`beta`**.  
 > Use this tag for testing purposes before stable releases are published.
 
 ## Usage
