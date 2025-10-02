@@ -5,4 +5,4 @@ services:
     platform: ${BUILD_PLATFORM}
     volumes:
       - ./tests:/tests:ro
-    command: php /tests/test_extensions.php
+    command: php84 /tests/test_extensions.php

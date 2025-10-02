@@ -4,8 +4,8 @@ shutdown() {
   echo "shutting down container"
 
   # first shutdown any service started by runit
-  for _srv in $(ls -1 /etc/service); do
-    sv force-stop $_srv
+  for _srv in /etc/service/*; do
+    sv force-stop "$_srv"
   done
 
   # shutdown runsvdir command
@@ -62,8 +62,8 @@ echo "Started runsvdir, PID is $RUNSVDIR"
 echo "wait for processes to start...."
 
 sleep 5
-for _srv in $(ls -1 /etc/service); do
-    sv status $_srv
+for _srv in /etc/service/*; do
+    sv status "$_srv"
 done
 
 # If there are additional arguments, execute them
@@ -72,7 +72,7 @@ if [ $# -gt 0 ]; then
 fi
 
 # catch shutdown signals
-trap shutdown SIGTERM SIGHUP SIGQUIT SIGINT
+trap shutdown TERM HUP QUIT INT
 wait $RUNSVDIR
 
 shutdown
