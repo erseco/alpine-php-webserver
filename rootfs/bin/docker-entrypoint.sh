@@ -16,6 +16,7 @@ shutdown() {
   sleep 0.5
 
   # kill any other processes still running in the container
+  # shellcheck disable=SC2009
   for _pid  in $(ps -eo pid | grep -v PID  | tr -d ' ' | grep -v '^1$' | head -n -6); do
     timeout 5 /bin/sh -c "kill $_pid && wait $_pid || kill -9 $_pid"
   done
