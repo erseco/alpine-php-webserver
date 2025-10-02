@@ -35,25 +35,21 @@ SEL=$(echo "$BEST" | tail -n "$MAINTAINED_MINORS" | awk '{ lines[NR]=$0 } END { 
 # 4) Build the block
 BLOCK=""
 first=1
-for entry in $SEL; do
-  set -- $entry
-done
 
-# Trick: iterate line by line
 echo "$SEL" | while read -r minor full; do
   if [ "$first" -eq 1 ]; then
-    line="- \`3\`, \`$minor\`, \`$full\`"
-    if [ "$INCLUDE_LATEST" = "true" ]; then
-      line="$line, \`latest\`"
-    fi
+    # newest minor → include all aliases: latest, 3, minor, full
+    line="- \`latest\`, \`3\`, \`$minor\`, \`$full\`"
     url="https://github.com/${REPO}/blob/${full}/Dockerfile"
     echo "${line} ([Dockerfile](${url}))"
     first=0
   else
+    # older minors → only minor and full
     url="https://github.com/${REPO}/blob/${full}/Dockerfile"
     echo "- \`${minor}\`, \`${full}\` ([Dockerfile](${url}))"
   fi
 done > supported-tags.tmp
+
 
 # 5) Replace the block in README
 awk -v start="$BLOCK_START" -v end="$BLOCK_END" '
