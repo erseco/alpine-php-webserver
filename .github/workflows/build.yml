@@ -12,7 +12,7 @@ jobs:
   buildx:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       security-events: write
       
@@ -129,6 +129,28 @@ jobs:
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
 
+      - name: Generate Supported Tags block
+        if: github.event_name != 'pull_request'
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          # true if the tag belongs to main (your same logic)
+          INCLUDE_LATEST: ${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' && 'true' || 'false' }}
+          MAINTAINED_MINORS: "3"
+        run: |
+          .github/scripts/update-readme.sh
+
+      - name: Commit README if changed
+        if: github.event_name != 'pull_request'
+        run: |
+          if ! git diff --quiet -- README.md; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore(readme): update supported tags"
+            git push
+          else
+            echo "No README changes to commit."
+          fi
 
       # Update Docker Hub Description
       - name: Docker Hub Description

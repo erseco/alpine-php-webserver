@@ -23,6 +23,13 @@ Repository: https://github.com/erseco/alpine-php-webserver
 * The logs of all the services are redirected to the output of the Docker container (visible with `docker logs -f <container name>`)
 * Follows the KISS principle (Keep It Simple, Stupid) to make it easy to understand and adjust the image to your needs
 
+## Supported tags and respective Dockerfile links
+<!-- supported-tags:start -->
+- `3`, `3.22`, `3.22.1` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.1/Dockerfile))
+- `3.21`, `3.21.4` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.4/Dockerfile))
+- `3.20`, `3.20.7` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.7/Dockerfile))
+<!-- supported-tags:end -->
+
 ## Usage
 
 Start the Docker container:
