@@ -1,7 +1,6 @@
 #!/bin/sh
 set -eu
 
-INCLUDE_LATEST="${INCLUDE_LATEST:-false}"
 MAINTAINED_MINORS="${MAINTAINED_MINORS:-3}"
 REPO="${GITHUB_REPOSITORY:-erseco/alpine-php-webserver}"
 README="${README:-README.md}"

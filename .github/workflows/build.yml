@@ -130,17 +130,15 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Generate Supported Tags block
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-          # true if the tag belongs to main (your same logic)
-          INCLUDE_LATEST: ${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' && 'true' || 'false' }}
           MAINTAINED_MINORS: "3"
         run: |
           .github/scripts/update-readme.sh
 
       - name: Commit README if changed
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         run: |
           if ! git diff --quiet -- README.md; then
             git config user.name "github-actions"
