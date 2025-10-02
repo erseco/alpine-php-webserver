@@ -50,7 +50,7 @@ jobs:
             # latest only if tag belongs to main
             type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
             # beta on each push to main (no tag)
-            type=raw,value=beta,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=beta,enable=${{ github.ref_name == 'main' }}
 
 
       # Set up QEMU for multi-platform builds
@@ -130,17 +130,15 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Generate Supported Tags block
-        if: github.event_name != 'pull_request'
+        if: github.ref_name == 'main'
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-          # true if the tag belongs to main (your same logic)
-          INCLUDE_LATEST: ${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' && 'true' || 'false' }}
           MAINTAINED_MINORS: "3"
         run: |
           .github/scripts/update-readme.sh
 
       - name: Commit README if changed
-        if: github.event_name != 'pull_request'
+        if: github.ref_name == 'main'
         run: |
           if ! git diff --quiet -- README.md; then
             git config user.name "github-actions"
