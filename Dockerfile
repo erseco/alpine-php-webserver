@@ -97,4 +97,13 @@ ENV nginx_root_directory=/var/www/html \
     upload_max_filesize=2M \
     zlib_output_compression=On \
     date_timezone=UTC \
-    intl_default_locale=en_US
+    intl_default_locale=en_US \
+    fastcgi_read_timeout=60s \
+    fastcgi_send_timeout=60s \
+    # Recommended OPcache settings for Symfony
+    opcache_memory_consumption=256 \
+    opcache_max_accelerated_files=20000 \
+    opcache_validate_timestamps=0 \
+    opcache_preload="" \
+    realpath_cache_size=4096K \
+    realpath_cache_ttl=600
