@@ -154,6 +154,41 @@ PHP-FPM configuration:
 
 _Note; Because `-v` requires an absolute path I've added `pwd` in the example to return the absolute path to the current directory_
 
+## High-Performance Configuration (Large File Uploads)
+
+To handle large file uploads and long-running processes, you need to adjust several Nginx and PHP settings. The default values are kept low to maintain a lightweight configuration, but you can easily override them using environment variables.
+
+For example, to configure the server to handle file uploads of up to **512MB**, you should synchronize the following settings in your `docker-compose.yml` or `docker run` command:
+
+```yaml
+services:
+  webserver:
+    image: erseco/alpine-php-webserver
+    ports:
+      - 8080:8080
+    volumes:
+      - ./php:/var/www/html
+    environment:
+      # Nginx settings
+      client_max_body_size: 512M
+      fastcgi_read_timeout: 600s
+      fastcgi_send_timeout: 600s
+      # PHP settings
+      post_max_size: 512M
+      upload_max_filesize: 512M
+      memory_limit: 512M
+    restart: unless-stopped
+```
+
+### Key Variables for High Performance
+
+- **`client_max_body_size` (Nginx):** Must be large enough to accommodate the largest expected file size.
+- **`upload_max_filesize` (PHP):** The maximum size of a single uploaded file.
+- **`post_max_size` (PHP):** The maximum size of POST data that PHP will accept. This should be equal to or larger than `upload_max_filesize`.
+- **`memory_limit` (PHP):** The maximum amount of memory a script can consume. It's a good practice to set this to a value equal to or greater than `post_max_size`.
+- **`fastcgi_read_timeout` & `fastcgi_send_timeout` (Nginx):** Increase these to prevent Nginx from closing the connection prematurely during long uploads or processing tasks. A value of `600s` (10 minutes) is a sensible starting point.
+
+
 ## Environment variables
 
 You can define the next environment variables to change values from NGINX and PHP
@@ -162,6 +197,8 @@ You can define the next environment variables to change values from NGINX and PH
 |--------|-------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | NGINX  | nginx_root_directory    | /var/www/html | Sets the root directory for the NGINX server, which specifies the location from which files are served. This is the directory where your web application's public files should reside.                                                                 |
 | NGINX  | client_max_body_size    | 2m            | Sets the maximum allowed size of the client request body, specified in the “Content-Length” request header field.                                                                                                                                      |
+| NGINX  | fastcgi_read_timeout    | 60s           | Defines a timeout for reading a response from the FastCGI server.                                                                                                                                                                                      |
+| NGINX  | fastcgi_send_timeout    | 60s           | Sets a timeout for transmitting a request to the FastCGI server.                                                                                                                                                                                       |
 | NGINX  | DISABLE_DEFAULT_LOCATION | false         | If set to "true", this variable disables the default `location /` block in the Nginx configuration. This allows you to mount a custom configuration in `/etc/nginx/server-conf.d/` without conflicts.                                                 |
 | PHP8   | clear_env               | no            | Clear environment in FPM workers. Prevents arbitrary environment variables from reaching FPM worker processes by clearing the environment in workers before env vars specified in this pool configuration are added.                                   |
 | PHP8   | allow_url_fopen         | On            | Enable the URL-aware fopen wrappers that enable accessing URL object like files. Default wrappers are provided for the access of remote files using the ftp or http protocol, some extensions like zlib may register additional wrappers.              |
@@ -177,8 +214,63 @@ You can define the next environment variables to change values from NGINX and PH
 | PHP8   | zlib_output_compression | On            | Whether to transparently compress pages. If this option is set to "On" in php.ini or the Apache configuration, pages are compressed if the browser sends an "Accept-Encoding: gzip" or "deflate" header.                                               |
 | PHP8   | date_timezone           | UTC           | Sets the PHP timezone configuration (date.timezone) in custom.ini. Accepts standard PHP timezone identifiers (e.g., 'America/New_York', 'Europe/London'). See [PHP timezones](https://www.php.net/manual/en/timezones.php) for valid values. |
 | PHP8   | intl_default_locale     | en_US         | If you want to change the [PHP locale](https://www.php.net/manual/en/class.locale.php) for the entire application or server globally (e.g. in php.ini), you can set the intl.default_locale directives (e.g. en_US or de_DE) |
+| PHP8   | OPCACHE_MEMORY_CONSUMPTION | 256          | The size of the OPcache shared memory storage in megabytes.                                                                                                                                                                                          |
+| PHP8   | OPCACHE_MAX_ACCELERATED_FILES | 20000        | The maximum number of keys (and files) in the OPcache hash table.                                                                                                                                                                                    |
+| PHP8   | OPCACHE_VALIDATE_TIMESTAMPS | 0             | When set to `0`, PHP files are not checked for changes. Recommended for production. Set to `1` for development.                                                                                                                                      |
 
 _Note; Because `-v` requires an absolute path I've added `pwd` in the example to return the absolute path to the current directory_
+
+## Symfony Optimization
+
+For running Symfony applications in a production environment, several optimizations are recommended to achieve the best performance. This image includes a production-ready OPcache configuration and the necessary Nginx setup, but you should also follow Symfony's deployment best practices.
+
+### Recommended Build Steps
+
+When building your Docker image for a Symfony application, you should include the following steps in your `Dockerfile` to ensure optimal performance:
+
+1.  **Install Dependencies with Composer:** Use `composer install` with production-oriented flags to get a highly optimized class loader.
+2.  **Build Production Assets:** If you are using Symfony Encore or another asset bundler, build your assets for production.
+3.  **Clear and Warmup the Cache:** Clear and warm up Symfony's cache to avoid performance hits on the first request.
+
+Here is an example `Dockerfile` snippet that you can adapt for your project:
+
+```dockerfile
+FROM erseco/alpine-php-webserver
+
+# Switch to root to install Composer and other tools
+USER root
+RUN apk add --no-cache composer
+
+# Copy application source code
+COPY ./ /var/www/html
+WORKDIR /var/www/html
+
+# Install PHP dependencies for production
+USER nobody
+RUN composer install --no-dev --optimize-autoloader --classmap-authoritative
+
+# Build frontend assets (if applicable)
+# RUN npm install && npm run build
+
+# Clear and warmup Symfony cache for production
+RUN php bin/console cache:clear --env=prod --no-debug
+RUN php bin/console cache:warmup --env=prod
+
+# Optional: remove Composer to reduce image size
+USER root
+RUN apk del composer
+USER nobody
+```
+
+### OPcache Configuration
+
+This image includes a recommended OPcache configuration for Symfony, located at `/etc/php84/conf.d/opcache-recommended.ini`. The key settings are exposed as environment variables so you can fine-tune them:
+
+-   **`OPCACHE_MEMORY_CONSUMPTION`:** (Default: `256`) The size of the OPcache shared memory storage in megabytes.
+-   **`OPCACHE_MAX_ACCELERATED_FILES`:** (Default: `20000`) The maximum number of keys (and files) in the OPcache hash table.
+-   **`OPCACHE_VALIDATE_TIMESTAMPS`:** (Default: `0`) When set to `0` (recommended for production), PHP files are not checked for changes. You should use a cache-clearing strategy in your deployment process instead of relying on this setting. For development, set it to `1`.
+
+By following these steps, you can ensure that your Symfony application runs with the best possible performance.
 
 
 ## Adding composer
