@@ -264,7 +264,7 @@ USER nobody
 
 ### OPcache Configuration
 
-This image includes a recommended OPcache configuration for Symfony, located at `/etc/php84/conf.d/opcache-recommended.ini`. The key settings are exposed as environment variables so you can fine-tune them:
+This image includes a recommended OPcache configuration for Symfony, which is included in the main PHP configuration file (`/etc/php84/conf.d/custom.ini`). The key settings are exposed as environment variables so you can fine-tune them:
 
 -   **`OPCACHE_MEMORY_CONSUMPTION`:** (Default: `256`) The size of the OPcache shared memory storage in megabytes.
 -   **`OPCACHE_MAX_ACCELERATED_FILES`:** (Default: `20000`) The maximum number of keys (and files) in the OPcache hash table.
