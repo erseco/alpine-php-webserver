@@ -38,6 +38,8 @@ jobs:
   test:
     name: Test on ${{ matrix.platform }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         platform:
