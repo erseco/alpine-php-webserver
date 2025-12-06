@@ -4,6 +4,9 @@ FROM ${ARCH}alpine:3.23
 LABEL Maintainer="Ernesto Serrano <info@ernesto.es>" \
       Description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
 
+# Set pipefail to catch errors in piped commands
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
 # Install packages
 RUN apk --no-cache add \
         php84 \
