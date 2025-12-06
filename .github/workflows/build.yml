@@ -133,7 +133,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Generate Supported Tags block
-        if: github.ref_name == 'main'
+        if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           MAINTAINED_MINORS: "3"
@@ -141,7 +141,7 @@ jobs:
           .github/scripts/update-readme.sh
 
       - name: Commit README if changed
-        if: github.ref_name == 'main'
+        if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
         run: |
           if ! git diff --quiet -- README.md; then
             git config user.name "github-actions"
