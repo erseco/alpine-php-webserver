@@ -18,8 +18,8 @@ intl.default_locale= "$intl_default_locale"
 ; Recommended OPcache settings for Symfony
 ; https://symfony.com/doc/current/performance.html
 
-opcache.enable=1
-opcache.enable_cli=1
+opcache.enable=$opcache_enable
+opcache.enable_cli=$opcache_enable
 
 ; The amount of memory to use for OPcache, in megabytes.
 opcache.memory_consumption=$opcache_memory_consumption

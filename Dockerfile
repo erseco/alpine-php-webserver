@@ -105,6 +105,7 @@ ENV nginx_root_directory=/var/www/html \
     fastcgi_read_timeout=60s \
     fastcgi_send_timeout=60s \
     # Recommended OPcache settings for Symfony
+    opcache_enable=0 \
     opcache_memory_consumption=256 \
     opcache_max_accelerated_files=20000 \
     opcache_validate_timestamps=0 \
