@@ -148,7 +148,8 @@ jobs:
             git config user.email "github-actions@users.noreply.github.com"
             git add README.md
             git commit -m "chore(readme): update supported tags"
-            git push
+            # release/tag runs can be in detached HEAD; push commit explicitly to main
+            git push origin HEAD:main
           else
             echo "No README changes to commit."
           fi
@@ -162,5 +163,4 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           short-description: ${{ github.event.repository.description }}
           readme-filepath: ./README.md
-
 
