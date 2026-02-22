@@ -25,7 +25,7 @@ Repository: https://github.com/erseco/alpine-php-webserver
 
 ## Supported tags and respective Dockerfile links
 <!-- supported-tags:start -->
-- `latest`, `3`, `3.23`, `3.23.0+1` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.0+1/Dockerfile))
+- `latest`, `3`, `3.23`, `3.23.3` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.3/Dockerfile))
 - `3.22`, `3.22.2` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.2/Dockerfile))
 - `3.21`, `3.21.5` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.5/Dockerfile))
 <!-- supported-tags:end -->
