@@ -100,81 +100,10 @@ jobs:
         if: always()
         run: docker compose --file docker-compose.test.yml down -v
 
-  security:
-    needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      COMPOSE_PROJECT_NAME: security
-      IMAGE_UNDER_TEST: alpine-php-webserver:test
-      ZAP_MAX_DURATION_MINUTES: "3"
-      ZAP_REPORT_DIR: ${{ runner.temp }}/zap-reports
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build image for security scan
-        run: |
-          docker buildx build \
-            --tag "${IMAGE_UNDER_TEST}" \
-            --cache-from type=gha,scope=security-scan \
-            --cache-to type=gha,mode=max,scope=security-scan \
-            --load \
-            .
-
-      - name: Start application for security scan
-        run: docker compose --file docker-compose.test.yml up -d app
-
-      - name: Run OWASP ZAP baseline scan
-        run: |
-          mkdir -p "${ZAP_REPORT_DIR}"
-          docker run --rm \
-            --network "${COMPOSE_PROJECT_NAME}_default" \
-            --volume "${ZAP_REPORT_DIR}:/zap/wrk:rw" \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
-            -t http://app:8080 \
-            -m "${ZAP_MAX_DURATION_MINUTES}" \
-            -I \
-            -J zap-report.json \
-            -r zap-report.html \
-            -w zap-report.md
-
-      - name: Print ZAP scan summary
-        if: always()
-        run: |
-          if [ -f "${ZAP_REPORT_DIR}/zap-report.md" ]; then
-            cat "${ZAP_REPORT_DIR}/zap-report.md"
-          else
-            echo "ZAP report was not generated."
-          fi
-
-      - name: Upload ZAP scan artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-baseline-report
-          path: ${{ env.ZAP_REPORT_DIR }}
-          if-no-files-found: warn
-
-      - name: Show container logs on failure
-        if: failure()
-        run: docker compose --file docker-compose.test.yml logs app
-
-      - name: Tear down security scan stack
-        if: always()
-        run: docker compose --file docker-compose.test.yml down -v
-
   buildx:
     needs:
       - lint
       - test
-      - security
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:

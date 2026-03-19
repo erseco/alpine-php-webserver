@@ -5,6 +5,20 @@ apk --no-cache add curl >/dev/null
 
 app_url="${APP_URL:-http://app:8080}"
 index_response="$(mktemp)"
+php_version_pattern='PHP Version 8\.4|PHP 8\.4'
+
+expect_status() {
+  path="$1"
+  expected_status="$2"
+  response_status="$(
+    curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${app_url}${path}"
+  )"
+
+  if [ "${response_status}" != "${expected_status}" ]; then
+    echo "Expected ${path} to return HTTP ${expected_status}, got ${response_status}" >&2
+    exit 1
+  fi
+}
 
 cleanup() {
   rm -f "${index_response}"
@@ -29,7 +43,7 @@ if [ ! -s "${index_response}" ]; then
 fi
 
 echo "Checking PHP response ..."
-grep -Eq 'PHP Version 8\.4|PHP 8\.4' "${index_response}"
+grep -Eq "${php_version_pattern}" "${index_response}"
 
 echo "Checking static file delivery ..."
 curl --silent --show-error --fail "${app_url}/test.html" \
@@ -37,4 +51,14 @@ curl --silent --show-error --fail "${app_url}/test.html" \
 
 echo "Checking direct PHP execution ..."
 curl --silent --show-error --fail "${app_url}/index.php" \
-  | grep -Eq 'PHP Version 8\.4|PHP 8\.4'
+  | grep -Eq "${php_version_pattern}"
+
+echo "Checking PHP response headers ..."
+curl --silent --show-error --fail --head "${app_url}/index.php" \
+  | grep -Ei '^content-type: text/html'
+
+echo "Checking protected dotfiles are denied ..."
+expect_status '/.git/config' '403'
+
+echo "Checking PHP-FPM ping is not exposed externally ..."
+expect_status '/fpm-ping' '403'
