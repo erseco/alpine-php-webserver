@@ -5,7 +5,7 @@ apk --no-cache add curl >/dev/null
 
 app_url="${APP_URL:-http://app:8080}"
 index_response="$(mktemp)"
-php_version_pattern='PHP Version 8\.4|PHP 8\.4'
+php_version_pattern='PHP (Version )?8\.4'
 
 expect_status() {
   path="$1"
