@@ -32,7 +32,6 @@ SEL=$(echo "$BEST" | tail -n "$MAINTAINED_MINORS" | awk '{ lines[NR]=$0 } END { 
 [ -n "$SEL" ] || { echo "No minors selected" >&2; exit 0; }
 
 # 4) Build the block
-BLOCK=""
 first=1
 
 echo "$SEL" | while read -r minor full; do
