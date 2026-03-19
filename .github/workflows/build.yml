@@ -108,6 +108,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: security
       IMAGE_UNDER_TEST: alpine-php-webserver:test
+      ZAP_SPIDER_MINUTES: "3"
       ZAP_REPORT_DIR: ${{ runner.temp }}/zap-reports
 
     steps:
@@ -138,7 +139,7 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://app:8080 \
-            -m 3 \
+            -m "${ZAP_SPIDER_MINUTES}" \
             -I \
             -J zap-report.json \
             -r zap-report.html \
@@ -244,6 +245,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Trivy vulnerability scanner
+        if: github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true'
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ghcr.io/${{ github.repository }}@${{ steps.image.outputs.digest }}

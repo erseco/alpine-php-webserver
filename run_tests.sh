@@ -4,11 +4,18 @@ set -eu
 apk --no-cache add curl >/dev/null
 
 app_url="${APP_URL:-http://app:8080}"
+index_response="$(mktemp)"
+
+cleanup() {
+  rm -f "${index_response}"
+}
+
+trap cleanup EXIT
 
 echo "Waiting for ${app_url} ..."
 attempt=1
 while [ "$attempt" -le 30 ]; do
-  if curl --silent --show-error --fail "${app_url}/" > /tmp/index.html; then
+  if curl --silent --show-error --fail "${app_url}/" > "${index_response}"; then
     break
   fi
 
@@ -16,13 +23,13 @@ while [ "$attempt" -le 30 ]; do
   sleep 1
 done
 
-if [ ! -s /tmp/index.html ]; then
+if [ ! -s "${index_response}" ]; then
   echo "Application did not become ready at ${app_url}" >&2
   exit 1
 fi
 
 echo "Checking PHP response ..."
-grep -Eq 'PHP Version 8\.4|PHP 8\.4' /tmp/index.html
+grep -Eq 'PHP Version 8\.4|PHP 8\.4' "${index_response}"
 
 echo "Checking static file delivery ..."
 curl --silent --show-error --fail "${app_url}/test.html" \
