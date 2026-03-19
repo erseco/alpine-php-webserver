@@ -108,7 +108,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: security
       IMAGE_UNDER_TEST: alpine-php-webserver:test
-      ZAP_SPIDER_MINUTES: "3"
+      ZAP_MAX_DURATION_MINUTES: "3"
       ZAP_REPORT_DIR: ${{ runner.temp }}/zap-reports
 
     steps:
@@ -139,7 +139,7 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://app:8080 \
-            -m "${ZAP_SPIDER_MINUTES}" \
+            -m "${ZAP_MAX_DURATION_MINUTES}" \
             -I \
             -J zap-report.json \
             -r zap-report.html \
