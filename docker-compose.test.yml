@@ -1,9 +1,10 @@
 ---
 services:
   app:
+    image: ${IMAGE_UNDER_TEST:-alpine-php-webserver:test}
     build: .
   sut:
-    image: alpine:latest
+    image: alpine:3.23
     depends_on:
       - app
     command: /tmp/run_tests.sh
