@@ -84,6 +84,9 @@ HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-pin
 
 ENV nginx_root_directory=/var/www/html \
     client_max_body_size=2M \
+    REAL_IP_HEADER=X-Forwarded-For \
+    REAL_IP_RECURSIVE=off \
+    REAL_IP_FROM="" \
     clear_env=no \
     allow_url_fopen=On \
     allow_url_include=Off \
