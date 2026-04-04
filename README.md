@@ -152,6 +152,9 @@ You can define the next environment variables to change values from NGINX and PH
 |--------|-------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | NGINX  | nginx_root_directory    | /var/www/html | Sets the root directory for the NGINX server, which specifies the location from which files are served. This is the directory where your web application's public files should reside.                                                                 |
 | NGINX  | client_max_body_size    | 2m            | Sets the maximum allowed size of the client request body, specified in the “Content-Length” request header field.                                                                                                                                      |
+| NGINX  | REAL_IP_HEADER          | X-Forwarded-For | Selects the header NGINX should trust for the original client IP when `REAL_IP_FROM` is configured. Common values are `X-Forwarded-For` and `CF-Connecting-IP`.                                                                                  |
+| NGINX  | REAL_IP_RECURSIVE       | off           | Controls whether NGINX walks the trusted proxy chain recursively when resolving the client IP. Accepted values are `on` and `off`.                                                                                                                  |
+| NGINX  | REAL_IP_FROM            | *(empty)*     | Comma-separated list of trusted proxy IPs/CIDRs for `set_real_ip_from`. Real IP restoration stays disabled until this variable is set.                                                                                                               |
 | PHP8   | clear_env               | no            | Clear environment in FPM workers. Prevents arbitrary environment variables from reaching FPM worker processes by clearing the environment in workers before env vars specified in this pool configuration are added.                                   |
 | PHP8   | allow_url_fopen         | On            | Enable the URL-aware fopen wrappers that enable accessing URL object like files. Default wrappers are provided for the access of remote files using the ftp or http protocol, some extensions like zlib may register additional wrappers.              |
 | PHP8   | allow_url_include       | Off           | Allow the use of URL-aware fopen wrappers with the following functions: include(), include_once(), require(), require_once().                                                                                                                          |
@@ -168,6 +171,45 @@ You can define the next environment variables to change values from NGINX and PH
 | PHP8   | intl_default_locale     | en_US         | If you want to change the [PHP locale](https://www.php.net/manual/en/class.locale.php) for the entire application or server globally (e.g. in php.ini), you can set the intl.default_locale directives (e.g. en_US or de_DE) |
 
 _Note; Because `-v` requires an absolute path I've added `pwd` in the example to return the absolute path to the current directory_
+
+### Trusted proxy real IP support
+
+`REAL_IP_HEADER`, `REAL_IP_RECURSIVE`, and `REAL_IP_FROM` restore the real client IP from a trusted reverse proxy chain. This is separate from proxy HTTPS handling like `X-Forwarded-Proto`.
+
+Trusted proxy real IP restoration is disabled by default. The image only enables NGINX `real_ip_*` directives when `REAL_IP_FROM` contains one or more explicit trusted proxy ranges.
+
+Only trust proxy IPs or CIDRs that are under your control. Do **not** set `REAL_IP_FROM` to broad public ranges such as `0.0.0.0/0`, because that would allow clients to spoof forwarded IP headers.
+
+Generic reverse proxy example:
+
+```yaml
+environment:
+  REAL_IP_HEADER: X-Forwarded-For
+  REAL_IP_RECURSIVE: "on"
+  REAL_IP_FROM: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+```
+
+Cloudflare example:
+
+```yaml
+environment:
+  REAL_IP_HEADER: CF-Connecting-IP
+  REAL_IP_RECURSIVE: "on"
+  REAL_IP_FROM: 173.245.48.0/20,103.21.244.0/22
+```
+
+Use the full set of Cloudflare proxy ranges that apply to your deployment, not just the sample CIDRs above. Cloudflare publishes the current list here: <https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/>.
+
+Cloudflare Tunnel / Zero Trust example:
+
+```yaml
+environment:
+  REAL_IP_HEADER: CF-Connecting-IP
+  REAL_IP_RECURSIVE: "on"
+  REAL_IP_FROM: 172.16.0.0/12
+```
+
+For Tunnel or Zero Trust setups, trust only the private IP range of your tunnel connector or ingress proxy.
 
 
 ## Adding composer
