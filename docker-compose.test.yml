@@ -2,10 +2,21 @@ version: '3.5'
 services:
   app:
     build: .
+    volumes:
+      - "./tests/fixtures/real-ip.php:/var/www/html/real-ip.php:ro"
+  realip:
+    build: .
+    environment:
+      REAL_IP_FROM: 172.16.0.0/12
+      REAL_IP_HEADER: X-Forwarded-For
+      REAL_IP_RECURSIVE: "on"
+    volumes:
+      - "./tests/fixtures/real-ip.php:/var/www/html/real-ip.php:ro"
   sut:
     image: alpine:3.20
     depends_on:
       - app
+      - realip
     command: /tmp/run_tests.sh
     volumes:
       - "./run_tests.sh:/tmp/run_tests.sh:ro"
