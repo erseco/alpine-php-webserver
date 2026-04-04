@@ -100,6 +100,9 @@ ENV nginx_root_directory=/var/www/html \
     intl_default_locale=en_US \
     fastcgi_read_timeout=60s \
     fastcgi_send_timeout=60s \
+    REAL_IP_HEADER=X-Forwarded-For \
+    REAL_IP_RECURSIVE=off \
+    REAL_IP_FROM="" \
     # Recommended OPcache settings for Symfony
     opcache_memory_consumption=256 \
     opcache_max_accelerated_files=20000 \

@@ -25,9 +25,10 @@ Repository: https://github.com/erseco/alpine-php-webserver
 
 ## Supported tags and respective Dockerfile links
 <!-- supported-tags:start -->
-- `latest`, `3`, `3.22`, `3.22.2` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.2/Dockerfile))
-- `3.21`, `3.21.4` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.4/Dockerfile))
-- `3.20`, `3.20.7` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.7/Dockerfile))
+- `latest`, `3`, `3.23`, `3.23.3` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.3/Dockerfile))
+- `3.22`, `3.22.2` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.2/Dockerfile))
+- `3.21`, `3.21.5` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.5/Dockerfile))
+- `3.20`, `3.20.8` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.8/Dockerfile))
 <!-- supported-tags:end -->
 
 > **Note**: The `main` branch ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/main/Dockerfile)) is automatically pushed with the tag **`beta`**.  
@@ -163,6 +164,9 @@ You can define the next environment variables to change values from NGINX and PH
 | NGINX  | fastcgi_read_timeout          | 60s           | Defines a timeout for reading a response from the FastCGI server.                                                                                                                                                                            |
 | NGINX  | fastcgi_send_timeout          | 60s           | Sets a timeout for transmitting a request to the FastCGI server.                                                                                                                                                                             |
 | NGINX  | DISABLE_DEFAULT_LOCATION      | false         | If set to "true", this variable disables the default `location /` block in the Nginx configuration. This allows you to mount a custom configuration in `/etc/nginx/server-conf.d/` without conflicts.                                        |
+| NGINX  | REAL_IP_HEADER                | X-Forwarded-For | Selects the header NGINX should trust for the original client IP when `REAL_IP_FROM` is configured. Common values are `X-Forwarded-For` and `CF-Connecting-IP`.                                                                            |
+| NGINX  | REAL_IP_RECURSIVE             | off           | Controls whether NGINX walks the trusted proxy chain recursively when resolving the client IP. Accepted values are `on` and `off`.                                                                                                         |
+| NGINX  | REAL_IP_FROM                  | *(empty)*     | Comma-separated list of trusted proxy IPs/CIDRs for `set_real_ip_from`. Real IP restoration stays disabled until this variable is set.                                                                                                      |
 | PHP8   | clear_env                     | no            | Clear environment in FPM workers. Prevents arbitrary environment variables from reaching FPM worker processes by clearing the environment in workers before env vars specified in this pool configuration are added.                         |
 | PHP8   | allow_url_fopen               | On            | Enable the URL-aware fopen wrappers that enable accessing URL object like files. Default wrappers are provided for the access of remote files using the ftp or http protocol, some extensions like zlib may register additional wrappers.    |
 | PHP8   | allow_url_include             | Off           | Allow the use of URL-aware fopen wrappers with the following functions: include(), include_once(), require(), require_once().                                                                                                                |
@@ -183,7 +187,47 @@ You can define the next environment variables to change values from NGINX and PH
 | PHP8   | opcache_preload               | *(empty)*     | Specifies a PHP script to be compiled and executed at server start-up, improving performance. See [PHP Preloading](https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.preload). Example: `/var/www/html/config/preload.php` |
 | PHP8   | realpath_cache_size           | 4096K         | The size of the realpath cache to be used by PHP.                                                                                                                                                                                            |
 | PHP8   | realpath_cache_ttl            | 600           | The time-to-live for the realpath cache.                                                                                                                                                                                                     |
-  
+
+### Trusted proxy real IP support
+
+Trusted proxy real IP restoration is disabled by default. The image only enables NGINX `real_ip_*` directives when `REAL_IP_FROM` contains one or more explicit trusted proxy ranges.
+
+Only trust proxy IPs or CIDRs that are under your control. Do **not** set `REAL_IP_FROM` to broad public ranges such as `0.0.0.0/0`, because that would allow clients to spoof `X-Forwarded-For` or similar headers.
+
+Generic reverse proxy example:
+
+```bash
+docker run \
+  -e REAL_IP_HEADER=X-Forwarded-For \
+  -e REAL_IP_RECURSIVE=on \
+  -e REAL_IP_FROM=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 \
+  erseco/alpine-php-webserver
+```
+
+Cloudflare example:
+
+```bash
+docker run \
+  -e REAL_IP_HEADER=CF-Connecting-IP \
+  -e REAL_IP_RECURSIVE=on \
+  -e REAL_IP_FROM=173.245.48.0/20,103.21.244.0/22 \
+  erseco/alpine-php-webserver
+```
+
+Use the full set of Cloudflare proxy ranges that apply to your deployment, not just the sample CIDRs above. Cloudflare publishes the current list here: <https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/>.
+
+Cloudflare Tunnel / Zero Trust example:
+
+```bash
+docker run \
+  -e REAL_IP_HEADER=CF-Connecting-IP \
+  -e REAL_IP_RECURSIVE=on \
+  -e REAL_IP_FROM=172.16.0.0/12 \
+  erseco/alpine-php-webserver
+```
+
+For Tunnel or Zero Trust setups, trust only the private IP range of your tunnel connector or ingress proxy.
+
 ## Adding composer
 
 If you need [Composer](https://getcomposer.org/) in your project, here's an easy way to add it.
