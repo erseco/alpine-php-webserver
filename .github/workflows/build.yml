@@ -136,7 +136,7 @@ jobs:
         if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-          MAINTAINED_MINORS: "3"
+          MAINTAINED_MINORS: "4"
         run: |
           .github/scripts/update-readme.sh
 
@@ -163,4 +163,3 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           short-description: ${{ github.event.repository.description }}
           readme-filepath: ./README.md
-

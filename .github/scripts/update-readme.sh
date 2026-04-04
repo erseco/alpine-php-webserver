@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-MAINTAINED_MINORS="${MAINTAINED_MINORS:-3}"
+MAINTAINED_MINORS="${MAINTAINED_MINORS:-4}"
 REPO="${GITHUB_REPOSITORY:-erseco/alpine-php-webserver}"
 README="${README:-README.md}"
 
