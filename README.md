@@ -192,7 +192,7 @@ You can define the next environment variables to change values from NGINX and PH
 
 Trusted proxy real IP restoration is disabled by default. The image only enables NGINX `real_ip_*` directives when `REAL_IP_FROM` contains one or more explicit trusted proxy ranges.
 
-Only trust proxy IPs or CIDRs that are under your control. Do **not** set `REAL_IP_FROM` to broad public ranges, because that would allow clients to spoof `X-Forwarded-For` or similar headers.
+Only trust proxy IPs or CIDRs that are under your control. Do **not** set `REAL_IP_FROM` to broad public ranges such as `0.0.0.0/0`, because that would allow clients to spoof `X-Forwarded-For` or similar headers.
 
 Generic reverse proxy example:
 
@@ -214,7 +214,7 @@ docker run \
   erseco/alpine-php-webserver
 ```
 
-Use the full set of Cloudflare proxy ranges that apply to your deployment, not just the sample CIDRs above.
+Use the full set of Cloudflare proxy ranges that apply to your deployment, not just the sample CIDRs above. Cloudflare publishes the current list here: <https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/>.
 
 Cloudflare Tunnel / Zero Trust example:
 
