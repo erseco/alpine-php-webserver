@@ -46,7 +46,7 @@ services:
 - `latest`, `3`, `3.23`, `3.23.3` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.3/Dockerfile))
 - `3.22`, `3.22.2` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.2/Dockerfile))
 - `3.21`, `3.21.5` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.5/Dockerfile))
-- `3.20`, `3.20.8` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.8/Dockerfile))
+- `3.20`, `3.20.9` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.9/Dockerfile))
 <!-- supported-tags:end -->
 
 > **Note**: The `main` branch ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/main/Dockerfile)) is automatically pushed with the tag **`beta`**. Use this tag for testing purposes before stable releases are published.
