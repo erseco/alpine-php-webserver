@@ -1,0 +1,94 @@
+site_name: Alpine PHP Webserver
+site_description: Lightweight Nginx + PHP-FPM Docker image built on Alpine Linux — official documentation.
+site_url: https://erseco.github.io/alpine-php-webserver/
+repo_url: https://github.com/erseco/alpine-php-webserver
+repo_name: erseco/alpine-php-webserver
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/language-php
+
+nav:
+  - Home: index.md
+  - Quick Start: quick-start.md
+  - Docker Compose: docker-compose.md
+  - Nginx Configuration: nginx.md
+  - PHP Configuration: php.md
+  - Environment Variables: environment-variables.md
+  - Reverse Proxy & Trusted IPs: reverse-proxy.md
+  - Composer & Building: composer.md
+  - Extending the Image: extending.md
+  - Healthcheck & Logs: healthcheck-logs.md
+  - Troubleshooting: troubleshooting.md
+  - FAQ: faq.md
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.caret
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/erseco/alpine-php-webserver
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/erseco/alpine-php-webserver
