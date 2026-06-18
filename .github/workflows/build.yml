@@ -5,21 +5,24 @@ on:
     branches:
       - main # beta
     tags:
-      - '[0-9]+\.[0-9]+\.[0-9]+' # 3.20.7, 3.21.2, 3.22.0… avoid tagging without patch
+      # Match semantic version tags like 3.22, 3.22.1, 3.22.1-1, 3.22-beta, v3.22.1-rc1, etc.
+      - '[0-9]+\.[0-9]+(\.[0-9]+)?(-[0-9A-Za-z]+)?' 
   pull_request:
+  release:
+    types: [ published ]
 
 jobs:
   buildx:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       security-events: write
       
     steps:
       # Checkout the code
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # tags + full history
 
@@ -38,7 +41,7 @@ jobs:
       # Extract metadata and prepare tags
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ghcr.io/${{ github.repository }}
@@ -50,31 +53,31 @@ jobs:
             # latest only if tag belongs to main
             type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
             # beta on each push to main (no tag)
-            type=raw,value=beta,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=beta,enable=${{ github.ref_name == 'main' }}
 
 
       # Set up QEMU for multi-platform builds
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
       # Set up Docker Buildx
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # Login to DockerHub and GHCR
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -89,7 +92,7 @@ jobs:
           no-fail: true
 
       - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: hadolint-results.sarif
           category: hadolint-dockerfile
@@ -110,7 +113,7 @@ jobs:
       # Build and Push to both registries in one step
       - name: Build and push
         if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -129,14 +132,34 @@ jobs:
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
 
+      - name: Generate Supported Tags block
+        if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          MAINTAINED_MINORS: "4"
+        run: |
+          .github/scripts/update-readme.sh
+
+      - name: Commit README if changed
+        if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
+        run: |
+          if ! git diff --quiet -- README.md; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore(readme): update supported tags"
+            # release/tag runs can be in detached HEAD; push commit explicitly to main
+            git push origin HEAD:main
+          else
+            echo "No README changes to commit."
+          fi
 
       # Update Docker Hub Description
       - name: Docker Hub Description
         if: startsWith(github.ref, 'refs/tags/') && contains(join(steps.meta.outputs.tags, '\n'), 'latest')
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           short-description: ${{ github.event.repository.description }}
-
-
+          readme-filepath: ./README.md
