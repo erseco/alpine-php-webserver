@@ -1,5 +1,5 @@
 ARG ARCH=
-FROM ${ARCH}alpine:3.23
+FROM ${ARCH}alpine:3.23.4
 
 LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
       org.opencontainers.image.description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
