@@ -8,37 +8,38 @@ LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
 # Install packages
+# Note: PHP 8.5 bundles OPcache into core, so there is no separate php85-opcache
+# package; json and zlib are likewise provided by the php85 core package.
 RUN apk --no-cache add \
-        php84 \
-        php84-ctype \
-        php84-curl \
-        php84-dom \
-        php84-exif \
-        php84-fileinfo \
-        php84-fpm \
-        php84-gd \
-        php84-iconv \
-        php84-intl \
-        php84-json \
-        php84-mbstring \
-        php84-mysqli \
-        php84-opcache \
-        php84-openssl \
-        php84-pecl-apcu \
-        php84-pdo \
-        php84-pdo_mysql \
-        php84-pgsql \
-        php84-phar \
-        php84-session \
-        php84-simplexml \
-        php84-soap \
-        php84-sodium \
-        php84-sqlite3 \
-        php84-tokenizer \
-        php84-xml \
-        php84-xmlreader \
-        php84-zip \
-        php84-zlib \
+        php85 \
+        php85-ctype \
+        php85-curl \
+        php85-dom \
+        php85-exif \
+        php85-fileinfo \
+        php85-fpm \
+        php85-gd \
+        php85-iconv \
+        php85-intl \
+        php85-json \
+        php85-mbstring \
+        php85-mysqli \
+        php85-openssl \
+        php85-pecl-apcu \
+        php85-pdo \
+        php85-pdo_mysql \
+        php85-pgsql \
+        php85-phar \
+        php85-session \
+        php85-simplexml \
+        php85-soap \
+        php85-sodium \
+        php85-sqlite3 \
+        php85-tokenizer \
+        php85-xml \
+        php85-xmlreader \
+        php85-zip \
+        php85-zlib \
         nginx \
         runit \
         curl \

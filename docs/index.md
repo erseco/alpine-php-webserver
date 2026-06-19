@@ -20,7 +20,7 @@ This image is the **base for [`erseco/alpine-moodle`](https://github.com/erseco/
 
 ## Highlights
 
-- Alpine Linux **3.23**, Nginx **1.28**, PHP **8.4** FPM (see the Dockerfile for the actual versions in each tag)
+- Alpine Linux **3.24**, Nginx **1.28**, PHP **8.5** FPM (see the Dockerfile for the actual versions in each tag)
 - Multi-arch: `amd64`, `arm64`, `arm/v7`, `arm/v6`, `386`, `ppc64le`, `s390x`
 - `ondemand` FPM process manager — ~zero idle CPU
 - Unix-socket FastCGI for Nginx ↔ PHP (`/run/php-fpm.sock`)

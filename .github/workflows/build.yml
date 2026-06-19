@@ -136,7 +136,7 @@ jobs:
         if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
-          MAINTAINED_MINORS: "4"
+          MAINTAINED_MINORS: "5"
         run: |
           .github/scripts/update-readme.sh
 

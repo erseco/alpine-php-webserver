@@ -92,7 +92,7 @@ Packaged in Alpine? One line:
 FROM erseco/alpine-php-webserver:latest
 
 USER root
-RUN apk add --no-cache php84-ldap php84-pecl-redis php84-pecl-mongodb
+RUN apk add --no-cache php85-ldap php85-pecl-redis php85-pecl-mongodb
 USER nobody
 ```
 
@@ -105,7 +105,7 @@ You don't always need a new image. For quick tweaks, mount a file directly:
 ```bash
 # Extra PHP settings
 docker run --rm -p 8080:8080 \
-  -v "$PWD/90-app.ini:/etc/php84/conf.d/90-app.ini:ro" \
+  -v "$PWD/90-app.ini:/etc/php85/conf.d/90-app.ini:ro" \
   erseco/alpine-php-webserver
 
 # Extra Nginx server-block rules

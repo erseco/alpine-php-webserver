@@ -65,7 +65,7 @@ See [PHP Configuration](php.md) for usage notes and examples.
 Anything not in this table can be injected via:
 
 - `/etc/nginx/conf.d/*.conf` or `/etc/nginx/server-conf.d/*.conf` for Nginx directives
-- `/etc/php84/conf.d/NN-*.ini` for PHP settings
+- `/etc/php85/conf.d/NN-*.ini` for PHP settings
 - A custom image extending this one
 
 See [Extending the Image](extending.md).

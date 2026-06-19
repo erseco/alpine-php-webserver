@@ -27,11 +27,11 @@ Build a derived image:
 ```dockerfile
 FROM erseco/alpine-php-webserver:latest
 USER root
-RUN apk add --no-cache php84-ldap php84-pecl-redis
+RUN apk add --no-cache php85-ldap php85-pecl-redis
 USER nobody
 ```
 
-Extensions available in Alpine: <https://pkgs.alpinelinux.org/packages?name=php84-*&branch=edge>
+Extensions available in Alpine: <https://pkgs.alpinelinux.org/packages?name=php85-*&branch=edge>
 
 ## What's the connection between Nginx and PHP-FPM?
 
@@ -43,12 +43,12 @@ For the Docker healthcheck. It is locked down to `127.0.0.1` ([#20](https://gith
 
 ## How do I change PHP settings?
 
-Environment variables. The entrypoint expands `/etc/php84/conf.d/custom.ini.tpl` through `envsubst`. See [PHP Configuration](php.md) and the full [Environment Variables](environment-variables.md) reference.
+Environment variables. The entrypoint expands `/etc/php85/conf.d/custom.ini.tpl` through `envsubst`. See [PHP Configuration](php.md) and the full [Environment Variables](environment-variables.md) reference.
 
-For settings not exposed as env vars, drop your own `.ini` file into `/etc/php84/conf.d/`:
+For settings not exposed as env vars, drop your own `.ini` file into `/etc/php85/conf.d/`:
 
 ```bash
--v "$PWD/90-app.ini:/etc/php84/conf.d/90-app.ini:ro"
+-v "$PWD/90-app.ini:/etc/php85/conf.d/90-app.ini:ro"
 ```
 
 ## How do I run commands as root?
@@ -94,7 +94,7 @@ Set `REAL_IP_FROM` to the list of trusted proxies. Real IP restoration is disabl
 
 ## What's the image based on? Can I use a newer Alpine version?
 
-Current `main` is on Alpine 3.23, Nginx 1.28, PHP 8.4. Older Alpine versions are available as fixed tags (`3.22`, `3.21`, `3.20`) for backports. Pick the one that matches your stability vs. freshness preference.
+Current `main` is on Alpine 3.24, Nginx 1.28, PHP 8.5. Older Alpine versions are available as fixed tags (`3.23`, `3.22`, `3.21`, `3.20`) for backports. Pick the one that matches your stability vs. freshness preference.
 
 ## Can I contribute?
 

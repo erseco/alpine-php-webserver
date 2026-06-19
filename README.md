@@ -4,7 +4,7 @@
 ![Docker Image Size](https://img.shields.io/docker/image-size/erseco/alpine-php-webserver)
 ![alpine 3.24](https://img.shields.io/badge/alpine-3.24-brightgreen.svg)
 ![nginx 1.28](https://img.shields.io/badge/nginx-1.28-brightgreen.svg)
-![php 8.4](https://img.shields.io/badge/php-8.4-brightgreen.svg)
+![php 8.5](https://img.shields.io/badge/php-8.5-brightgreen.svg)
 ![License MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 
 A minimal **Nginx + PHP-FPM** Docker image built on [Alpine Linux](https://www.alpinelinux.org/) — ~25 MB, multi-arch, configured entirely through environment variables.
@@ -47,6 +47,7 @@ services:
 - `3.23`, `3.23.4` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.4/Dockerfile))
 - `3.22`, `3.22.4` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.4/Dockerfile))
 - `3.21`, `3.21.7` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.7/Dockerfile))
+- `3.20`, `3.20.10` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.10/Dockerfile))
 <!-- supported-tags:end -->
 
 > **Note**: The `main` branch ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/main/Dockerfile)) is automatically pushed with the tag **`beta`**. Use this tag for testing purposes before stable releases are published.
@@ -54,13 +55,13 @@ services:
 ## Key features
 
 - Compact image (~25 MB) built on Alpine Linux
-- PHP 8.4 FPM with `ondemand` process manager — idles near-zero CPU
+- PHP 8.5 FPM with `ondemand` process manager — idles near-zero CPU
 - Unix-socket FastCGI between Nginx and PHP-FPM
 - Healthcheck on `/fpm-ping` (localhost-only by design)
 - Trusted-proxy real IP support (`REAL_IP_FROM`, Cloudflare, Tunnel)
 - `DISABLE_DEFAULT_LOCATION` for full routing control
 - Custom Nginx snippets via `/etc/nginx/conf.d/` and `/etc/nginx/server-conf.d/`
-- Custom PHP settings via environment variables or `/etc/php84/conf.d/*.ini`
+- Custom PHP settings via environment variables or `/etc/php85/conf.d/*.ini`
 - Extra daemons via `runit` (`/etc/service/<name>/run`)
 - Startup scripts via `/docker-entrypoint-init.d/`
 - Non-privileged `nobody` user; logs on `stdout` / `stderr`

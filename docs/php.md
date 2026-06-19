@@ -1,6 +1,6 @@
 # PHP Configuration
 
-PHP settings are templated from a single file — `/etc/php84/conf.d/custom.ini.tpl` — which the entrypoint runs through `envsubst` and writes to `/etc/php84/conf.d/custom.ini`. FPM pool settings (`/etc/php84/php-fpm.d/www.conf`) get the same treatment.
+PHP settings are templated from a single file — `/etc/php85/conf.d/custom.ini.tpl` — which the entrypoint runs through `envsubst` and writes to `/etc/php85/conf.d/custom.ini`. FPM pool settings (`/etc/php85/php-fpm.d/www.conf`) get the same treatment.
 
 Concretely, **anything you can change via a documented env var is already wired up**. You don't need to mount a custom `php.ini` for the vast majority of settings.
 
@@ -71,7 +71,7 @@ Preload runs at FPM worker startup, so any error in the script will keep workers
 
 ## Bundled extensions
 
-The image ships with a curated set of PHP 8.4 extensions — enough for most frameworks out of the box:
+The image ships with a curated set of PHP 8.5 extensions — enough for most frameworks out of the box:
 
 - Core: `ctype`, `curl`, `dom`, `exif`, `fileinfo`, `iconv`, `intl`, `json`, `mbstring`, `openssl`, `session`, `simplexml`, `soap`, `sodium`, `tokenizer`, `xml`, `xmlreader`, `zip`, `zlib`, `phar`
 - Image: `gd`
@@ -83,17 +83,17 @@ Need something else (e.g. `ldap`, `redis`, `imagick`)? Build a thin image on top
 ```dockerfile
 FROM erseco/alpine-php-webserver:latest
 USER root
-RUN apk add --no-cache php84-ldap php84-pecl-redis
+RUN apk add --no-cache php85-ldap php85-pecl-redis
 USER nobody
 ```
 
 ## Mounting your own `php.ini` snippet
 
-The entrypoint only manages `custom.ini`. You can drop additional `.ini` files into `/etc/php84/conf.d/` and PHP will pick them up:
+The entrypoint only manages `custom.ini`. You can drop additional `.ini` files into `/etc/php85/conf.d/` and PHP will pick them up:
 
 ```bash
 docker run --rm -p 8080:8080 \
-  -v "$PWD/90-my-app.ini:/etc/php84/conf.d/90-my-app.ini:ro" \
+  -v "$PWD/90-my-app.ini:/etc/php85/conf.d/90-my-app.ini:ro" \
   erseco/alpine-php-webserver
 ```
 
