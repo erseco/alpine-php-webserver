@@ -36,16 +36,17 @@ BLOCK=""
 first=1
 
 echo "$SEL" | while read -r minor full; do
+  url="https://github.com/${REPO}/blob/${full}/Dockerfile"
+  # Derive the PHP version shipped by this tag from its own Dockerfile (php85 -> 8.5)
+  php_ver=$(git show "${full}:Dockerfile" 2>/dev/null | grep -oE 'php8[0-9]' | head -1 | sed -E 's/^php([0-9])([0-9])$/\1.\2/')
+  if [ -n "$php_ver" ]; then php_note=" — PHP ${php_ver}"; else php_note=""; fi
   if [ "$first" -eq 1 ]; then
     # newest minor → include all aliases: latest, 3, minor, full
-    line="- \`latest\`, \`3\`, \`$minor\`, \`$full\`"
-    url="https://github.com/${REPO}/blob/${full}/Dockerfile"
-    echo "${line} ([Dockerfile](${url}))"
+    echo "- \`latest\`, \`3\`, \`$minor\`, \`$full\` ([Dockerfile](${url}))${php_note}"
     first=0
   else
     # older minors → only minor and full
-    url="https://github.com/${REPO}/blob/${full}/Dockerfile"
-    echo "- \`${minor}\`, \`${full}\` ([Dockerfile](${url}))"
+    echo "- \`${minor}\`, \`${full}\` ([Dockerfile](${url}))${php_note}"
   fi
 done > supported-tags.tmp
 

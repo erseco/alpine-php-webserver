@@ -94,7 +94,17 @@ Set `REAL_IP_FROM` to the list of trusted proxies. Real IP restoration is disabl
 
 ## What's the image based on? Can I use a newer Alpine version?
 
-Current `main` is on Alpine 3.24, Nginx 1.28, PHP 8.5. Older Alpine versions are available as fixed tags (`3.23`, `3.22`, `3.21`, `3.20`) for backports. Pick the one that matches your stability vs. freshness preference.
+Current `main` is on Alpine 3.24, Nginx 1.28, PHP 8.5. Older Alpine versions are available as fixed tags for backports. Each tag tracks the PHP version shipped by its Alpine release:
+
+| Tag | Alpine | PHP |
+|-----|--------|-----|
+| `3.24`, `latest` | 3.24 | 8.5 |
+| `3.23` | 3.23 | 8.4 |
+| `3.22` | 3.22 | 8.4 |
+| `3.21` | 3.21 | 8.4 |
+| `3.20` | 3.20 | 8.3 |
+
+Pick the one that matches your stability vs. freshness preference.
 
 ## Can I contribute?
 
