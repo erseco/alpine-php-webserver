@@ -16,6 +16,8 @@ ARG ARCH=
 ARG PHP_SUFFIX=85
 FROM ${ARCH}alpine:3.24 AS php-iconv-builder
 ARG PHP_SUFFIX
+# Fail early on pipe errors in the builder stage (Hadolint DL4006).
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 # hadolint ignore=DL3018
 RUN apk add --no-cache \
         "php${PHP_SUFFIX}" \
@@ -23,15 +25,19 @@ RUN apk add --no-cache \
         "php${PHP_SUFFIX}-iconv" \
         build-base \
         curl \
-        gnu-libiconv-dev \
- && PHPVER="$(php${PHP_SUFFIX} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION.".".PHP_RELEASE_VERSION;')" \
+        gnu-libiconv-dev
+# Prefer GNU libiconv headers over musl's incomplete iconv.h.
+RUN rm -f /usr/include/iconv.h \
+ && cp /usr/include/gnu-libiconv/iconv.h /usr/include/iconv.h
+# Fetch PHP sources matching the apk packages; symlink so WORKDIR is stable.
+WORKDIR /tmp
+RUN PHPVER="$(php${PHP_SUFFIX} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION.".".PHP_RELEASE_VERSION;')" \
  && curl -fsSL "https://www.php.net/distributions/php-${PHPVER}.tar.gz" \
       -o /tmp/php.tar.gz \
- && tar xzf /tmp/php.tar.gz -C /tmp \
- && rm -f /usr/include/iconv.h \
- && cp /usr/include/gnu-libiconv/iconv.h /usr/include/iconv.h \
- && cd "/tmp/php-${PHPVER}/ext/iconv" \
- && "phpize${PHP_SUFFIX}" \
+ && tar xzf /tmp/php.tar.gz \
+ && ln -sfn "/tmp/php-${PHPVER}/ext/iconv" /tmp/iconv-src
+WORKDIR /tmp/iconv-src
+RUN "phpize${PHP_SUFFIX}" \
  && ./configure \
       --with-php-config="/usr/bin/php-config${PHP_SUFFIX}" \
       --with-iconv=/usr \
