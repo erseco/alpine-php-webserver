@@ -1,3 +1,50 @@
+# Rebuild PHP iconv against Alpine's modern GNU libiconv (//TRANSLIT//IGNORE).
+#
+# Context:
+# - Alpine packages PHP against musl iconv, which does not implement the GNU
+#   //TRANSLIT and //IGNORE suffixes. Apps such as Moodle rely on them
+#   (core_text::specialtoascii / role short names):
+#   https://github.com/erseco/alpine-moodle/issues/26
+# - Alpine will not rebuild php*-iconv against gnu-libiconv:
+#   https://gitlab.alpinelinux.org/alpine/aports/-/issues/15114
+# - Official docker-library PHP Alpine images compile PHP with gnu-libiconv.
+#   We keep apk PHP packages and only rebuild the shared iconv extension.
+#
+# Result: iconv.so is linked to Alpine's current gnu-libiconv (1.17/1.18).
+# No process-wide preload and no ancient libiconv pin.
+ARG ARCH=
+ARG PHP_SUFFIX=84
+FROM ${ARCH}alpine:3.23.4 AS php-iconv-builder
+ARG PHP_SUFFIX
+# Fail early on pipe errors in the builder stage (Hadolint DL4006).
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+# hadolint ignore=DL3018
+RUN apk add --no-cache \
+        "php${PHP_SUFFIX}" \
+        "php${PHP_SUFFIX}-dev" \
+        "php${PHP_SUFFIX}-iconv" \
+        build-base \
+        curl \
+        gnu-libiconv-dev
+# Prefer GNU libiconv headers over musl's incomplete iconv.h.
+RUN rm -f /usr/include/iconv.h \
+ && cp /usr/include/gnu-libiconv/iconv.h /usr/include/iconv.h
+# Fetch PHP sources matching the apk packages; symlink so WORKDIR is stable.
+WORKDIR /tmp
+RUN PHPVER="$(php${PHP_SUFFIX} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION.".".PHP_RELEASE_VERSION;')" \
+ && curl -fsSL "https://www.php.net/distributions/php-${PHPVER}.tar.gz" \
+      -o /tmp/php.tar.gz \
+ && tar xzf /tmp/php.tar.gz \
+ && ln -sfn "/tmp/php-${PHPVER}/ext/iconv" /tmp/iconv-src
+WORKDIR /tmp/iconv-src
+RUN "phpize${PHP_SUFFIX}" \
+ && ./configure \
+      --with-php-config="/usr/bin/php-config${PHP_SUFFIX}" \
+      --with-iconv=/usr \
+      LIBS="-liconv" \
+ && make -j"$(nproc)" \
+ && install -D -m755 modules/iconv.so /out/iconv.so
+
 ARG ARCH=
 FROM ${ARCH}alpine:3.23.4
 
@@ -65,6 +112,20 @@ RUN apk --no-cache add \
 # Make sure files/folders needed by the processes are accessable when they run under the nobody user
     && mkdir -p /run /var/lib/nginx /var/www/html /var/log/nginx \
     && chown -R nobody:nobody /run /var/lib/nginx /var/www/html /var/log/nginx
+
+
+# Replace stock musl-linked php iconv with the GNU libiconv build from the builder stage.
+# Runtime needs libiconv.so.2 (gnu-libiconv / gnu-libiconv-libs).
+# hadolint ignore=DL3018
+RUN apk add --no-cache gnu-libiconv
+COPY --from=php-iconv-builder /out/iconv.so /usr/lib/php84/modules/iconv.so
+# Fail the build if transliteration is still unavailable.
+RUN out="$(php84 -r 'echo iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", "café");')" \
+ && echo "iconv TRANSLIT check: $out" \
+ && [ -n "$out" ]
+
+
+
 
 # Add configuration files
 COPY --chown=nobody rootfs/ /
