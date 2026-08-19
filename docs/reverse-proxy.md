@@ -3,9 +3,9 @@
 When `alpine-php-webserver` runs behind any HTTPS-terminating proxy you typically need two things:
 
 1. **The PHP app must see the original client IP** — not the proxy's.
-2. **PHP must know the request came in over HTTPS** — so `https://` URLs and secure cookies work.
+2. **PHP must know the public request scheme and port** — so canonical URLs, redirects, and secure cookies work correctly.
 
-The image solves both, but both require configuration on the container *and* the proxy.
+The image supports both, but the proxy must forward the relevant headers.
 
 ## Real client IP
 
@@ -24,21 +24,29 @@ docker run \
 !!! danger "Never use public CIDR ranges"
     Do not set `REAL_IP_FROM=0.0.0.0/0` or any public-range shortcut. That would let any client spoof `X-Forwarded-For`. Trust only IPs you control.
 
-## HTTPS awareness
+## HTTPS and public port awareness
 
-The default Nginx server block already sets:
+The default Nginx server block preserves the forwarded scheme, HTTPS status, and public port for PHP:
 
 ```nginx
 set $forwarded_scheme "http";
 if ($http_x_forwarded_proto = "https") {
     set $forwarded_scheme "https";
 }
-...
+
+map $http_x_forwarded_port $forwarded_server_port {
+    default $server_port;
+    "~^[0-9]{1,5}$" $http_x_forwarded_port;
+}
+
 fastcgi_param HTTP_X_FORWARDED_PROTO $forwarded_scheme;
+fastcgi_param SERVER_PORT $forwarded_server_port;
 fastcgi_param HTTPS $https if_not_empty;
 ```
 
-So as soon as your upstream proxy forwards `X-Forwarded-Proto: https`, PHP will see `$_SERVER['HTTPS']='on'` and frameworks generate HTTPS URLs automatically. No container-side flag needed.
+With `X-Forwarded-Proto: https`, applications can detect the original HTTPS request. When the proxy also forwards a numeric `X-Forwarded-Port`, PHP receives that public port in `$_SERVER['SERVER_PORT']`. If the header is absent or invalid, the container listener port is used instead.
+
+This matters when the public URL uses a non-standard port, for example `https://app.example.com:6443`, while the proxy forwards traffic internally to port `8080`.
 
 ## Traefik
 
@@ -72,7 +80,7 @@ networks:
     external: true
 ```
 
-Traefik forwards `X-Forwarded-Proto` automatically. Just match the upstream port — **8080**, not 80.
+Traefik forwards `X-Forwarded-Proto` automatically and can forward `X-Forwarded-Port` for non-standard public ports. Match the upstream port — **8080**, not 80.
 
 ## Nginx (front proxy)
 
@@ -95,6 +103,7 @@ server {
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto https;
         proxy_set_header   X-Forwarded-Host  $host;
+        proxy_set_header   X-Forwarded-Port  $server_port;
 
         proxy_read_timeout 300s;
     }
@@ -106,6 +115,8 @@ server {
     return 301 https://$host$request_uri;
 }
 ```
+
+Set `X-Forwarded-Port` to the actual public listener port when the frontend uses a non-standard port.
 
 On the container side:
 
@@ -195,7 +206,8 @@ Trust only the private CIDR of your tunnel connector, not the entire Cloudflare 
 Before opening a support issue:
 
 - [ ] The proxy upstream port is `8080` (not 80, not 443).
-- [ ] The proxy forwards `X-Forwarded-Proto`, `X-Forwarded-For`, `Host`.
+- [ ] The proxy forwards `X-Forwarded-Proto`, `X-Forwarded-For`, and `Host`.
+- [ ] For non-standard public ports, the proxy also forwards `X-Forwarded-Port`.
 - [ ] `REAL_IP_FROM` lists only IPs you control.
-- [ ] The PHP app reads `$_SERVER['HTTPS']` / `$_SERVER['REMOTE_ADDR']`, not raw TCP.
+- [ ] The PHP app reads `$_SERVER['HTTPS']`, `$_SERVER['SERVER_PORT']`, and `$_SERVER['REMOTE_ADDR']` as needed.
 - [ ] `client_max_body_size` is raised if users upload large files.
