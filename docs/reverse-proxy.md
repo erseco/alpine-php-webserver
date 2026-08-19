@@ -36,11 +36,12 @@ if ($http_x_forwarded_proto = "https") {
 
 map $http_x_forwarded_port $forwarded_server_port {
     default $server_port;
-    ~^[0-9]{1,5}$ $http_x_forwarded_port;
+    "~^[0-9]{1,5}$" $http_x_forwarded_port;
 }
 
 fastcgi_param HTTP_X_FORWARDED_PROTO $forwarded_scheme;
 fastcgi_param SERVER_PORT $forwarded_server_port;
+fastcgi_param HTTPS $https if_not_empty;
 ```
 
 With `X-Forwarded-Proto: https`, applications can detect the original HTTPS request. When the proxy also forwards a numeric `X-Forwarded-Port`, PHP receives that public port in `$_SERVER['SERVER_PORT']`. If the header is absent or invalid, the container listener port is used instead.
@@ -175,7 +176,7 @@ environment:
 docker run \
   -e REAL_IP_HEADER=CF-Connecting-IP \
   -e REAL_IP_RECURSIVE=on \
-  -e REAL_IP_FROM=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22 \
+  -e REAL_IP_FROM=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22 \
   erseco/alpine-php-webserver
 ```
 
