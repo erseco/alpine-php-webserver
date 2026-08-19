@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # beta
+      - '3.20' # maintained PHP 8.3 line
     tags:
       # Match semantic version tags like 3.22, 3.22.1, 3.22.1-1, 3.22-beta, v3.22.1-rc1, etc.
       - '[0-9]+\.[0-9]+(\.[0-9]+)?(-[0-9A-Za-z]+)?' 
@@ -54,6 +55,8 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
             # beta on each push to main (no tag)
             type=raw,value=beta,enable=${{ github.ref_name == 'main' }}
+            # maintained floating image for the PHP 8.3 / Alpine 3.20 line
+            type=raw,value=3.20,enable=${{ github.ref == 'refs/heads/3.20' }}
 
 
       # Set up QEMU for multi-platform builds
