@@ -43,10 +43,10 @@ services:
 ## Supported tags and respective Dockerfile links
 
 <!-- supported-tags:start -->
-- `latest`, `3`, `3.24`, `3.24.1` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.24.1/Dockerfile)) — PHP 8.5
-- `3.23`, `3.23.4-1` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.4-1/Dockerfile)) — PHP 8.4
-- `3.22`, `3.22.4` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.4/Dockerfile)) — PHP 8.4
-- `3.21`, `3.21.7` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.7/Dockerfile)) — PHP 8.4
+- `latest`, `3`, `3.24`, `3.24.2` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.24.2/Dockerfile)) — PHP 8.5
+- `3.23`, `3.23.6` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.6/Dockerfile)) — PHP 8.4
+- `3.22`, `3.22.6` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.6/Dockerfile)) — PHP 8.4
+- `3.21`, `3.21.8` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.8/Dockerfile)) — PHP 8.4
 - `3.20`, `3.20.11` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.11/Dockerfile)) — PHP 8.3
 <!-- supported-tags:end -->
 
