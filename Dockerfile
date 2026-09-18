@@ -14,7 +14,7 @@
 # No process-wide preload and no ancient libiconv pin.
 ARG ARCH=
 ARG PHP_SUFFIX=84
-FROM ${ARCH}alpine:3.23.4 AS php-iconv-builder
+FROM ${ARCH}alpine:3.23.6 AS php-iconv-builder
 ARG PHP_SUFFIX
 # Fail early on pipe errors in the builder stage (Hadolint DL4006).
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
@@ -46,7 +46,7 @@ RUN "phpize${PHP_SUFFIX}" \
  && install -D -m755 modules/iconv.so /out/iconv.so
 
 ARG ARCH=
-FROM ${ARCH}alpine:3.23.4
+FROM ${ARCH}alpine:3.23.6
 
 LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
       org.opencontainers.image.description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
