@@ -67,7 +67,7 @@ jobs:
             docker.io/${{ github.repository }}
           # Disable flavor latest=auto: otherwise ANY non-prerelease tag (3.20.11,
           # 3.23.4, …) overwrites :latest. :latest must track the mainline image
-          # only (currently Alpine 3.24.1 / PHP 8.5).
+          # only (currently Alpine 3.24.2 / PHP 8.5).
           flavor: |
             latest=false
           tags: |
@@ -78,7 +78,7 @@ jobs:
             type=raw,value=${{ steps.floatver.outputs.minor }},enable=${{ github.ref_type == 'tag' && steps.floatver.outputs.minor != '' }}
             # latest only if tag commit is on main history (see Check main ancestry)
             # IMPORTANT: maintenance lines (3.20.x, 3.23.x) must never move :latest.
-            # :latest / :3.24 track Alpine 3.24.1 (mainline PHP 8.5).
+            # :latest / :3.24 track Alpine 3.24.2 (mainline PHP 8.5).
             type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
             # beta on each push to main (no tag)
             type=raw,value=beta,enable=${{ github.ref_name == 'main' }}
