@@ -47,3 +47,10 @@ and re-fire CI with `gh release edit <tag> --draft` followed by `gh release edit
 - `MAINTAINED_MINORS` (in `build.yml` and `.github/scripts/update-readme.sh`) controls how many
   minors the README lists. Currently 5.
 - No AI attribution in commits, PRs, or files.
+
+## Releasing several tags at once
+
+Concurrent release builds all try to commit the regenerated README to `main`; the losers used to
+fail with `! [rejected] (fetch first)`. The commit step now rebases and retries, but the image
+build/push already finished by then — a failure in that last step never means a missing image.
+Verify with `docker manifest inspect docker.io/erseco/alpine-php-webserver:<tag>`.
