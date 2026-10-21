@@ -175,7 +175,10 @@ jobs:
           build-args: |
             PHP_SUFFIX=${{ matrix.php }}
             PHP_MIN_VERSION=${{ matrix.min }}
-          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
+          # ppc64le and s390x are temporarily left out: Alpine has not shipped
+          # PHP 8.5.12 / 8.3.36 for them yet. Their previous images are kept in
+          # the tags by hand. Restore them once the packages are available.
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386
           cache-from: type=gha,scope=php${{ matrix.php }}
           cache-to: type=gha,mode=max,scope=php${{ matrix.php }}
 
