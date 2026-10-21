@@ -14,8 +14,12 @@
 # No process-wide preload and no ancient libiconv pin.
 ARG ARCH=
 ARG PHP_SUFFIX=84
+# Lowest acceptable PHP patch release: the build fails if Alpine serves an older
+# one, and bumping it busts the cached apk layers so a rebuild pulls new packages.
+ARG PHP_MIN_VERSION=8.4.27
 FROM ${ARCH}alpine:3.23.6 AS php-iconv-builder
 ARG PHP_SUFFIX
+ARG PHP_MIN_VERSION
 # Fail early on pipe errors in the builder stage (Hadolint DL4006).
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 # hadolint ignore=DL3018
@@ -47,6 +51,7 @@ RUN "phpize${PHP_SUFFIX}" \
 
 ARG ARCH=
 FROM ${ARCH}alpine:3.23.6
+ARG PHP_MIN_VERSION
 
 LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
       org.opencontainers.image.description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
@@ -123,6 +128,9 @@ COPY --from=php-iconv-builder /out/iconv.so /usr/lib/php84/modules/iconv.so
 RUN out="$(php84 -r 'echo iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", "café");')" \
  && echo "iconv TRANSLIT check: $out" \
  && [ -n "$out" ]
+# Fail the build rather than publish a PHP older than PHP_MIN_VERSION.
+RUN php84 -r 'exit(version_compare(PHP_VERSION, getenv("PHP_MIN_VERSION"), ">=") ? 0 : 1);' \
+ || { echo "PHP $(php84 -r 'echo PHP_VERSION;') is older than $PHP_MIN_VERSION" >&2; exit 1; }
 
 
 
