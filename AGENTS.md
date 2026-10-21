@@ -12,11 +12,10 @@ Guide for agents maintaining this repo. Keep it short; update it when the proces
 | `3.21.x` | exact patch | 8.4 |
 | `3.20.x` | exact patch | 8.3 (`php83`) |
 
-`main` also builds `-php84` and `-php83` variants (same Dockerfile, `PHP_SUFFIX` build arg,
-matrix in `build.yml`), published as `3.24-php84`, `3.24.2-1-php83`, … Alpine only ships PHP
-security releases on its newest stable branch (3.24 community), so the 3.20.x–3.23.x branches stay
-frozen on old PHP patch versions; downstream images that need 8.3/8.4 (alpine-moodle) should use
-the variants.
+`main` also builds a `-php83` variant (same Dockerfile, `PHP_SUFFIX` build arg, matrix in
+`build.yml`), published as `3.24-php83`, `3.24.2-1-php83`, … Alpine 3.20 (the 3.20.x branch, PHP
+8.3) is EOL and gets no PHP fixes, so images that need 8.3 (alpine-moodle for Moodle 4.5–5.2)
+use the variant.
 
 Git tag = the Alpine patch the image was built from (`3.23.6`, `3.24.2`, …). Rebuilds of the
 same Alpine patch use a `-N` suffix (`3.23.4-1`).
@@ -36,12 +35,12 @@ When Alpine announces new patch releases:
 ## PHP security release
 
 1. Wait until Alpine 3.24 ships the fixed packages (`docker run --rm alpine:3.24 sh -c
-   'apk update -q && apk policy php85 php84 php83'`).
+   'apk update -q && apk policy php85 php83'`).
 2. Bump `min` for each line in the `build.yml` matrix to the fixed versions. The build fails
    while Alpine still serves an older PHP, and the new value busts the cached apk layers (a plain
    rebuild would reuse them and ship the old PHP).
 3. Merge, then tag `main` as a rebuild (`3.24.2-1`) and publish its GitHub Release with `--latest`.
-4. Check: `docker run --rm --entrypoint php erseco/alpine-php-webserver:3.24-php84 -v`.
+4. Check: `docker run --rm --entrypoint php erseco/alpine-php-webserver:3.24-php83 -v`.
 
 ## CI: what actually publishes images
 
@@ -59,8 +58,8 @@ and re-fire CI with `gh release edit <tag> --draft` followed by `gh release edit
 ## Gotchas
 
 - Only the newest PHP owns `/usr/bin/php`; the Dockerfile points it at `php${PHP_SUFFIX}`. On
-  the variants, `apk add composer` pulls in php85 and repoints it, so downstream images should
-  copy Composer from the official image instead.
+  the `-php83` variant, `apk add composer` pulls in php85 and repoints it, so downstream images
+  should copy Composer from the official image instead.
 - PHP 8.5 has **no `php85-opcache`** package (OPcache is in core); `json` and `zlib` also ship
   in the `php85` core package. FPM binary is `php-fpm85`, config tree `/etc/php85/`.
 - `MAINTAINED_MINORS` (in `build.yml` and `.github/scripts/update-readme.sh`) controls how many

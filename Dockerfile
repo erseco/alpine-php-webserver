@@ -13,9 +13,8 @@
 # Result: iconv.so is linked to Alpine's current gnu-libiconv (1.17/1.18).
 # No process-wide preload and no ancient libiconv pin.
 ARG ARCH=
-# 85 is the mainline image. CI also builds 84 and 83 on this same Alpine base
-# (-php84 / -php83 tags): Alpine only ships PHP security releases on its newest
-# stable branch, so the older 3.2x.x branches stay on old PHP patch versions.
+# 85 is the mainline image. CI also builds 83 on this same Alpine base (-php83
+# tags), because Alpine 3.20, the last branch defaulting to PHP 8.3, is EOL.
 ARG PHP_SUFFIX=85
 FROM ${ARCH}alpine:3.24 AS php-iconv-builder
 ARG PHP_SUFFIX

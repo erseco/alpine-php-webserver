@@ -26,13 +26,8 @@ jobs:
             version: '8.5'
             suffix: ''
             min: '8.5.12'
-          # Same Alpine base for apps that cannot run PHP 8.5 yet (e.g. Moodle).
-          # Alpine only updates PHP on its newest stable branch, so these lines
-          # get security releases; the 3.2x.x maintenance branches do not.
-          - php: '84'
-            version: '8.4'
-            suffix: '-php84'
-            min: '8.4.27'
+          # PHP 8.3 on the same Alpine base for apps that cannot run 8.4+
+          # (Moodle 4.5). Alpine 3.20, the last branch defaulting to 8.3, is EOL.
           - php: '83'
             version: '8.3'
             suffix: '-php83'
