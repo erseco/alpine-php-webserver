@@ -102,7 +102,10 @@ Current `main` is on Alpine 3.24, Nginx 1.28, PHP 8.5. Older Alpine versions are
 | `3.23` | 3.23 | 8.4 |
 | `3.22` | 3.22 | 8.4 |
 | `3.21` | 3.21 | 8.4 |
-| `3.20` | 3.20 | 8.3 |
+| `3.24-php84` | 3.24 | 8.4 |
+| `3.24-php83` | 3.24 | 8.3 |
+
+`3.20` (Alpine 3.20, PHP 8.3) is end-of-life and no longer updated: use `3.24-php83` instead.
 
 Pick the one that matches your stability vs. freshness preference.
 

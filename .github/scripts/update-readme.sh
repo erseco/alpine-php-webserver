@@ -37,8 +37,11 @@ first=1
 
 echo "$SEL" | while read -r minor full; do
   url="https://github.com/${REPO}/blob/${full}/Dockerfile"
-  # Derive the PHP version shipped by this tag from its own Dockerfile (php85 -> 8.5)
-  php_ver=$(git show "${full}:Dockerfile" 2>/dev/null | grep -oE 'php8[0-9]' | head -1 | sed -E 's/^php([0-9])([0-9])$/\1.\2/')
+  # Derive the PHP version shipped by this tag from its own Dockerfile: the
+  # PHP_SUFFIX default (85 -> 8.5) or, on older branches, the first php8X package.
+  dockerfile=$(git show "${full}:Dockerfile" 2>/dev/null)
+  php_ver=$(echo "$dockerfile" | sed -nE 's/^ARG PHP_SUFFIX=([0-9])([0-9])$/\1.\2/p' | head -1)
+  [ -n "$php_ver" ] || php_ver=$(echo "$dockerfile" | grep -oE 'php8[0-9]' | head -1 | sed -E 's/^php([0-9])([0-9])$/\1.\2/')
   if [ -n "$php_ver" ]; then php_note=" — PHP ${php_ver}"; else php_note=""; fi
   if [ "$first" -eq 1 ]; then
     # newest minor → include all aliases: latest, 3, minor, full
