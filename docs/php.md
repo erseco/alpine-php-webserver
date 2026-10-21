@@ -71,8 +71,8 @@ Preload runs at FPM worker startup, so any error in the script will keep workers
 
 ## Bundled extensions
 
-A PHP 8.3 build on the same Alpine base is published with a `-php83` suffix (`3.24-php83`); it uses
-`/etc/php83` instead of `/etc/php85`.
+PHP 8.3 and 8.4 builds on the same Alpine base are published with `-php83` and `-php84` suffixes
+(`3.24-php83`, `3.24-php84`); they use `/etc/php83` and `/etc/php84` instead of `/etc/php85`.
 
 The image ships with a curated set of PHP 8.5 extensions — enough for most frameworks out of the box:
 

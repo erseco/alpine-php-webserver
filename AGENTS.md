@@ -10,12 +10,13 @@ Guide for agents maintaining this repo. Keep it short; update it when the proces
 | `3.23.x` | exact patch, e.g. `alpine:3.23.6` | 8.4 (`php84`) |
 | `3.22.x` | exact patch | 8.4 |
 | `3.21.x` | exact patch | 8.4 |
-| `3.20.x` | exact patch | 8.3 (`php83`) |
+| `3.20.x` | exact patch | 8.3 (`php83`), EOL: no longer built or listed in the README |
 
-`main` also builds a `-php83` variant (same Dockerfile, `PHP_SUFFIX` build arg, matrix in
-`build.yml`), published as `3.24-php83`, `3.24.2-1-php83`, … Alpine 3.20 (the 3.20.x branch, PHP
-8.3) is EOL and gets no PHP fixes, so images that need 8.3 (alpine-moodle for Moodle 4.5–5.2)
-use the variant.
+`main` also builds `-php83` and `-php84` variants (same Dockerfile, `PHP_SUFFIX` build arg,
+matrix in `build.yml`), published as `3.24-php83`, `3.24.2-1-php83`, `3.24-php84`, … Alpine 3.20
+(the 3.20.x branch, PHP 8.3) is EOL and gets no PHP fixes, so images that need 8.3 (alpine-moodle
+for Moodle 4.5–5.2) use `-php83`. Images that need 8.4 (Moodle 5.3, Omeka S, FacturaScripts) use
+`-php84`, which gets PHP fixes sooner than the 3.23.x line.
 
 Git tag = the Alpine patch the image was built from (`3.23.6`, `3.24.2`, …). Rebuilds of the
 same Alpine patch use a `-N` suffix (`3.23.4-1`).
@@ -58,7 +59,7 @@ and re-fire CI with `gh release edit <tag> --draft` followed by `gh release edit
 ## Gotchas
 
 - Only the newest PHP owns `/usr/bin/php`; the Dockerfile points it at `php${PHP_SUFFIX}`. On
-  the `-php83` variant, `apk add composer` pulls in php85 and repoints it, so downstream images
+  the `-php83`/`-php84` variants, `apk add composer` pulls in php85 and repoints it, so downstream images
   should copy Composer from the official image instead.
 - PHP 8.5 has **no `php85-opcache`** package (OPcache is in core); `json` and `zlib` also ship
   in the `php85` core package. FPM binary is `php-fpm85`, config tree `/etc/php85/`.

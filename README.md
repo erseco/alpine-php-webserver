@@ -43,12 +43,15 @@ services:
 ## Supported tags and respective Dockerfile links
 
 <!-- supported-tags:start -->
-- `latest`, `3`, `3.24`, `3.24.2-3` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.24.2-3/Dockerfile)) — PHP 8.3
+- `latest`, `3`, `3.24`, `3.24.2-3` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.24.2-3/Dockerfile)) — PHP 8.5
 - `3.23`, `3.23.6` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.23.6/Dockerfile)) — PHP 8.4
 - `3.22`, `3.22.6` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.22.6/Dockerfile)) — PHP 8.4
 - `3.21`, `3.21.8` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.21.8/Dockerfile)) — PHP 8.4
-- `3.20`, `3.20.11` ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/3.20.11/Dockerfile)) — PHP 8.3
 <!-- supported-tags:end -->
+
+PHP 8.4 and 8.3 builds of the 3.24 line: `latest-php84`, `3.24-php84` and `latest-php83`, `3.24-php83`.
+
+> **Note**: `3.20` (Alpine 3.20, PHP 8.3) is end-of-life and no longer updated. Use `3.24-php83` for PHP 8.3.
 
 > **Note**: The `main` branch ([Dockerfile](https://github.com/erseco/alpine-php-webserver/blob/main/Dockerfile)) is automatically pushed with the tag **`beta`**. Use this tag for testing purposes before stable releases are published.
 
