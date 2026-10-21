@@ -13,9 +13,14 @@
 # Result: iconv.so is linked to Alpine's current gnu-libiconv (1.17/1.18).
 # No process-wide preload and no ancient libiconv pin.
 ARG ARCH=
+# 85 is the mainline image. CI also builds 83 on this same Alpine base (-php83
+# tags), because Alpine 3.20, the last branch defaulting to PHP 8.3, is EOL.
 ARG PHP_SUFFIX=85
 FROM ${ARCH}alpine:3.24 AS php-iconv-builder
 ARG PHP_SUFFIX
+# Lowest acceptable PHP patch release (set by CI). Changing it also busts the
+# cached apk layers, so a rebuild really pulls the new packages.
+ARG PHP_MIN_VERSION=
 # Fail early on pipe errors in the builder stage (Hadolint DL4006).
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 # hadolint ignore=DL3018
@@ -47,6 +52,8 @@ RUN "phpize${PHP_SUFFIX}" \
 
 ARG ARCH=
 FROM ${ARCH}alpine:3.24
+ARG PHP_SUFFIX
+ARG PHP_MIN_VERSION=
 
 LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
       org.opencontainers.image.description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
@@ -57,36 +64,38 @@ SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 # Install packages
 # Note: PHP 8.5 bundles OPcache into core, so there is no separate php85-opcache
 # package; json and zlib are likewise provided by the php85 core package.
-RUN apk --no-cache add \
-        php85 \
-        php85-ctype \
-        php85-curl \
-        php85-dom \
-        php85-exif \
-        php85-fileinfo \
-        php85-fpm \
-        php85-gd \
-        php85-iconv \
-        php85-intl \
-        php85-json \
-        php85-mbstring \
-        php85-mysqli \
-        php85-openssl \
-        php85-pecl-apcu \
-        php85-pdo \
-        php85-pdo_mysql \
-        php85-pgsql \
-        php85-phar \
-        php85-session \
-        php85-simplexml \
-        php85-soap \
-        php85-sodium \
-        php85-sqlite3 \
-        php85-tokenizer \
-        php85-xml \
-        php85-xmlreader \
-        php85-zip \
-        php85-zlib \
+# Only 8.4 and older need the php*-opcache package.
+RUN case "$PHP_SUFFIX" in 8[0-4]) opcache="php${PHP_SUFFIX}-opcache" ;; *) opcache="" ;; esac \
+    && apk --no-cache add $opcache \
+        "php${PHP_SUFFIX}" \
+        "php${PHP_SUFFIX}-ctype" \
+        "php${PHP_SUFFIX}-curl" \
+        "php${PHP_SUFFIX}-dom" \
+        "php${PHP_SUFFIX}-exif" \
+        "php${PHP_SUFFIX}-fileinfo" \
+        "php${PHP_SUFFIX}-fpm" \
+        "php${PHP_SUFFIX}-gd" \
+        "php${PHP_SUFFIX}-iconv" \
+        "php${PHP_SUFFIX}-intl" \
+        "php${PHP_SUFFIX}-json" \
+        "php${PHP_SUFFIX}-mbstring" \
+        "php${PHP_SUFFIX}-mysqli" \
+        "php${PHP_SUFFIX}-openssl" \
+        "php${PHP_SUFFIX}-pecl-apcu" \
+        "php${PHP_SUFFIX}-pdo" \
+        "php${PHP_SUFFIX}-pdo_mysql" \
+        "php${PHP_SUFFIX}-pgsql" \
+        "php${PHP_SUFFIX}-phar" \
+        "php${PHP_SUFFIX}-session" \
+        "php${PHP_SUFFIX}-simplexml" \
+        "php${PHP_SUFFIX}-soap" \
+        "php${PHP_SUFFIX}-sodium" \
+        "php${PHP_SUFFIX}-sqlite3" \
+        "php${PHP_SUFFIX}-tokenizer" \
+        "php${PHP_SUFFIX}-xml" \
+        "php${PHP_SUFFIX}-xmlreader" \
+        "php${PHP_SUFFIX}-zip" \
+        "php${PHP_SUFFIX}-zlib" \
         nginx \
         runit \
         curl \
@@ -112,24 +121,30 @@ RUN apk --no-cache add \
     && rm /etc/nginx/http.d/default.conf \
 # Make sure files/folders needed by the processes are accessable when they run under the nobody user
     && mkdir -p /run /var/lib/nginx /var/www/html /var/log/nginx \
-    && chown -R nobody:nobody /run /var/lib/nginx /var/www/html /var/log/nginx
+    && chown -R nobody:nobody /run /var/lib/nginx /var/www/html /var/log/nginx \
+# Only the newest PHP owns the unversioned /usr/bin/php; point it at ours.
+    && ln -sf "php${PHP_SUFFIX}" /usr/bin/php
 
 
 # Replace stock musl-linked php iconv with the GNU libiconv build from the builder stage.
 # Runtime needs libiconv.so.2 (gnu-libiconv / gnu-libiconv-libs).
 # hadolint ignore=DL3018
 RUN apk add --no-cache gnu-libiconv
-COPY --from=php-iconv-builder /out/iconv.so /usr/lib/php85/modules/iconv.so
+COPY --from=php-iconv-builder /out/iconv.so /usr/lib/php${PHP_SUFFIX}/modules/iconv.so
 # Fail the build if transliteration is still unavailable.
-RUN out="$(php85 -r 'echo iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", "café");')" \
+RUN out="$(php -r 'echo iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", "café");')" \
  && echo "iconv TRANSLIT check: $out" \
  && [ -n "$out" ]
-
-
-
+# Fail the build rather than publish a PHP older than the release CI asked for.
+RUN [ -z "$PHP_MIN_VERSION" ] \
+ || php -r 'exit(version_compare(PHP_VERSION, getenv("PHP_MIN_VERSION"), ">=") ? 0 : 1);' \
+ || { echo "PHP $(php -r 'echo PHP_VERSION;') is older than $PHP_MIN_VERSION" >&2; exit 1; }
 
 # Add configuration files
 COPY --chown=nobody rootfs/ /
+# rootfs keeps the PHP config under /etc/php85; other PHP lines read their own tree.
+COPY --chown=nobody rootfs/etc/php85/ /etc/php${PHP_SUFFIX}/
+RUN [ "$PHP_SUFFIX" = 85 ] || rm -rf /etc/php85
 
 # Switch to use a non-root user from here on
 USER nobody
@@ -148,7 +163,8 @@ ENTRYPOINT ["/bin/docker-entrypoint.sh"]
 # Configure a healthcheck to validate that everything is up&running
 HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-ping || exit 1
 
-ENV nginx_root_directory=/var/www/html \
+ENV PHP_SUFFIX=${PHP_SUFFIX} \
+    nginx_root_directory=/var/www/html \
     client_max_body_size=2M \
     clear_env=no \
     allow_url_fopen=On \
