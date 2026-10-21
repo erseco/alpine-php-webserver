@@ -14,6 +14,29 @@ on:
 jobs:
   buildx:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # min = lowest acceptable PHP patch release. Bump it to the latest PHP
+        # security release before re-tagging: the build then fails until Alpine
+        # ships it, and the new value busts the cached apk layers.
+        include:
+          # Mainline: unsuffixed tags (:latest, :3.24, :beta, ...).
+          - php: '85'
+            version: '8.5'
+            suffix: ''
+            min: '8.5.11'
+          # Same Alpine base for apps that cannot run PHP 8.5 yet (e.g. Moodle).
+          # Alpine only updates PHP on its newest stable branch, so these lines
+          # get security releases; the 3.2x.x maintenance branches do not.
+          - php: '84'
+            version: '8.4'
+            suffix: '-php84'
+            min: '8.4.26'
+          - php: '83'
+            version: '8.3'
+            suffix: '-php83'
+            min: '8.3.35'
     permissions:
       contents: write
       packages: write
@@ -70,6 +93,7 @@ jobs:
           # only (currently Alpine 3.24.2 / PHP 8.5).
           flavor: |
             latest=false
+            suffix=${{ matrix.suffix }},onlatest=true
           tags: |
             # Always from a tag push -> 3.20.7  y  3.20
             type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
@@ -130,10 +154,17 @@ jobs:
       - name: Debug Build
         if: github.event_name == 'pull_request'
         run: |
-          docker buildx build --load .
+          docker buildx build --load \
+            --build-arg PHP_SUFFIX=${{ matrix.php }} \
+            --build-arg PHP_MIN_VERSION=${{ matrix.min }} \
+            .
 
       # Test the built image
       - name: Test
+        env:
+          PHP_SUFFIX: ${{ matrix.php }}
+          PHP_MIN_VERSION: ${{ matrix.min }}
+          EXPECTED_PHP: ${{ matrix.version }}
         run: |
           docker compose version
           docker compose --file docker-compose.test.yml up --exit-code-from sut --timeout 10 --build
@@ -146,9 +177,12 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            PHP_SUFFIX=${{ matrix.php }}
+            PHP_MIN_VERSION=${{ matrix.min }}
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=php${{ matrix.php }}
+          cache-to: type=gha,mode=max,scope=php${{ matrix.php }}
 
       # Run Trivy vulnerability scanner ── only tags on main
       - name: Run Trivy vulnerability scanner
@@ -161,7 +195,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Generate Supported Tags block
-        if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
+        if: matrix.suffix == '' && (github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true'))
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           MAINTAINED_MINORS: "5"
@@ -169,7 +203,7 @@ jobs:
           .github/scripts/update-readme.sh
 
       - name: Commit README if changed
-        if: github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true')
+        if: matrix.suffix == '' && (github.ref_name == 'main' || (github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true'))
         run: |
           if ! git diff --quiet -- README.md; then
             git config user.name "github-actions"
@@ -188,7 +222,7 @@ jobs:
 
       # Update Docker Hub Description
       - name: Docker Hub Description
-        if: startsWith(github.ref, 'refs/tags/') && contains(join(steps.meta.outputs.tags, '\n'), 'latest')
+        if: matrix.suffix == '' && startsWith(github.ref, 'refs/tags/') && contains(join(steps.meta.outputs.tags, '\n'), 'latest')
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKER_USERNAME }}

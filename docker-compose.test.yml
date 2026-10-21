@@ -1,11 +1,17 @@
 ---
+x-build: &build
+  context: .
+  args:
+    PHP_SUFFIX: ${PHP_SUFFIX:-85}
+    PHP_MIN_VERSION: ${PHP_MIN_VERSION:-}
+
 services:
   app:
-    build: .
+    build: *build
     volumes:
       - "./tests/fixtures/real-ip.php:/var/www/html/real-ip.php:ro"
   realip:
-    build: .
+    build: *build
     environment:
       REAL_IP_FROM: 172.16.0.0/12
       REAL_IP_HEADER: X-Forwarded-For
@@ -18,5 +24,7 @@ services:
       - app
       - realip
     command: /tmp/run_tests.sh
+    environment:
+      EXPECTED_PHP: ${EXPECTED_PHP:-8.5}
     volumes:
       - "./run_tests.sh:/tmp/run_tests.sh:ro"
