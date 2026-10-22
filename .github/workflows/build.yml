@@ -46,6 +46,10 @@ jobs:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/${{ github.repository }}
+          # Disable flavor latest=auto: otherwise every non-prerelease tag of this
+          # maintenance line overwrites :latest, which must track main only.
+          flavor: |
+            latest=false
           tags: |
             # Always from a tag push -> 3.20.7  y  3.20
             type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
