@@ -13,12 +13,12 @@ Guide for agents maintaining this repo. Keep it short; update it when the proces
 | `3.20.x` | exact patch | 8.3 (`php83`), EOL: no longer built or listed in the README |
 
 `main` also builds `-php83` and `-php84` variants (same Dockerfile, `PHP_SUFFIX` build arg,
-matrix in `build.yml`), published as `3.24-php83`, `3.24.2-1-php83`, `3.24-php84`, … Alpine 3.20
+matrix in `build.yml`), published as `3.24-php83`, `3.24.3-php83`, `3.24-php84`, … Alpine 3.20
 (the 3.20.x branch, PHP 8.3) is EOL and gets no PHP fixes, so images that need 8.3 (alpine-moodle
 for Moodle 4.5–5.2) use `-php83`. Images that need 8.4 (Moodle 5.3, Omeka S, FacturaScripts) use
 `-php84`, which gets PHP fixes sooner than the 3.23.x line.
 
-Git tag = the Alpine patch the image was built from (`3.23.6`, `3.24.2`, …). Rebuilds of the
+Git tag = the Alpine patch the image was built from (`3.23.7`, `3.24.3`, …). Rebuilds of the
 same Alpine patch use a `-N` suffix (`3.23.4-1`).
 
 ## Alpine patch release (the routine job)
@@ -40,7 +40,7 @@ When Alpine announces new patch releases:
 2. Bump `min` for each line in the `build.yml` matrix to the fixed versions. The build fails
    while Alpine still serves an older PHP, and the new value busts the cached apk layers (a plain
    rebuild would reuse them and ship the old PHP).
-3. Merge, then tag `main` as a rebuild (`3.24.2-1`) and publish its GitHub Release with `--latest`.
+3. Merge, then tag `main` as a rebuild (`3.24.3-1`) and publish its GitHub Release with `--latest`.
 4. Check: `docker run --rm --entrypoint php erseco/alpine-php-webserver:3.24-php83 -v`.
 
 ## CI: what actually publishes images
