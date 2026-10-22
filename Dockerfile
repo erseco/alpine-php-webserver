@@ -17,7 +17,7 @@ ARG PHP_SUFFIX=84
 # Lowest acceptable PHP patch release: the build fails if Alpine serves an older
 # one, and bumping it busts the cached apk layers so a rebuild pulls new packages.
 ARG PHP_MIN_VERSION=8.4.27
-FROM ${ARCH}alpine:3.23.6 AS php-iconv-builder
+FROM ${ARCH}alpine:3.23.7 AS php-iconv-builder
 ARG PHP_SUFFIX
 ARG PHP_MIN_VERSION
 # Fail early on pipe errors in the builder stage (Hadolint DL4006).
@@ -50,7 +50,7 @@ RUN "phpize${PHP_SUFFIX}" \
  && install -D -m755 modules/iconv.so /out/iconv.so
 
 ARG ARCH=
-FROM ${ARCH}alpine:3.23.6
+FROM ${ARCH}alpine:3.23.7
 ARG PHP_MIN_VERSION
 
 LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
