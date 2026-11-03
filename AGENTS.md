@@ -9,7 +9,7 @@ Guide for agents maintaining this repo. Keep it short; update it when the proces
 | `main`   | `alpine:3.24` (floating minor — mainline) | 8.5 (`php85`) |
 | `3.23.x` | exact patch, e.g. `alpine:3.23.6` | 8.4 (`php84`) |
 | `3.22.x` | exact patch | 8.4 |
-| `3.21.x` | exact patch | 8.4 |
+| `3.21.x` | exact patch | 8.4, EOL: no longer built or listed in the README |
 | `3.20.x` | exact patch | 8.3 (`php83`), EOL: no longer built or listed in the README |
 
 `main` also builds `-php83` and `-php84` variants (same Dockerfile, `PHP_SUFFIX` build arg,
