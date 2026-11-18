@@ -43,6 +43,12 @@ When Alpine announces new patch releases:
 3. Merge, then tag `main` as a rebuild (`3.24.3-1`) and publish its GitHub Release with `--latest`.
 4. Check: `docker run --rm --entrypoint php erseco/alpine-php-webserver:3.24-php83 -v`.
 
+## nginx security release
+
+`NGINX_MIN_VERSION` in the `Dockerfile` pins the lowest acceptable nginx (`apk add "nginx>=…"`).
+Bump it to the fixed release, merge, then tag `main` as a rebuild like a PHP security release.
+Check: `docker run --rm --entrypoint nginx erseco/alpine-php-webserver:3.24-php84 -v`.
+
 ## CI: what actually publishes images
 
 `.github/workflows/build.yml` builds version Docker tags on the **`release: published`** event,

@@ -54,6 +54,10 @@ ARG ARCH=
 FROM ${ARCH}alpine:3.24
 ARG PHP_SUFFIX
 ARG PHP_MIN_VERSION=
+# Lowest acceptable nginx. 1.30.7 fixes the HTTP/2 RCEs CVE-2026-123007 and
+# CVE-2026-123633. Bump it on the next nginx security release: apk then fails
+# until Alpine ships it, and the new value busts the cached apk layer.
+ARG NGINX_MIN_VERSION=1.30.7
 
 LABEL org.opencontainers.image.authors="Ernesto Serrano <info@ernesto.es>" \
       org.opencontainers.image.description="Lightweight container with Nginx & PHP-FPM based on Alpine Linux."
@@ -96,7 +100,7 @@ RUN case "$PHP_SUFFIX" in 8[0-4]) opcache="php${PHP_SUFFIX}-opcache" ;; *) opcac
         "php${PHP_SUFFIX}-xmlreader" \
         "php${PHP_SUFFIX}-zip" \
         "php${PHP_SUFFIX}-zlib" \
-        nginx \
+        "nginx>=${NGINX_MIN_VERSION}" \
         runit \
         curl \
 # Bring in gettext so we can get `envsubst`, then throw
