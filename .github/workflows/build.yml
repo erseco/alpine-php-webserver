@@ -38,6 +38,20 @@ jobs:
             echo "is_main=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # For rebuild tags like 3.23.4-1 (SemVer pre-release), compute floating X.Y
+      # so type=raw can emit :3.23. type=semver alone skips major.minor on pre-releases.
+      - name: Floating minor for rebuild tags
+        id: floatver
+        if: ${{ github.ref_type == 'tag' }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          floating=""
+          if [[ "$tag" =~ ^([0-9]+\.[0-9]+)\.[0-9]+-[0-9]+$ ]]; then
+            floating="${BASH_REMATCH[1]}"
+          fi
+          echo "minor=$floating" >> "$GITHUB_OUTPUT"
+          echo "Floating minor for $tag -> '${floating:-<none>}'"
+
       # Extract metadata and prepare tags
       - name: Docker metadata
         id: meta
@@ -54,6 +68,8 @@ jobs:
             # Always from a tag push -> 3.20.7  y  3.20
             type=semver,pattern={{version}},enable=${{ github.ref_type == 'tag' }}
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref_type == 'tag' }}
+            # Rebuild tags X.Y.Z-N: emit floating X.Y (see Floating minor step)
+            type=raw,value=${{ steps.floatver.outputs.minor }},enable=${{ github.ref_type == 'tag' && steps.floatver.outputs.minor != '' }}
             # latest only if tag belongs to main
             type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.mainline.outputs.is_main == 'true' }}
             # beta on each push to main (no tag)
