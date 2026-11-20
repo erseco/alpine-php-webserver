@@ -25,19 +25,19 @@ jobs:
           - php: '85'
             version: '8.5'
             suffix: ''
-            min: '8.5.12'
+            min: '8.5.13'
           # PHP 8.3 on the same Alpine base for apps that cannot run 8.4+
           # (Moodle 4.5). Alpine 3.20, the last branch defaulting to 8.3, is EOL.
           - php: '83'
             version: '8.3'
             suffix: '-php83'
-            min: '8.3.36'
+            min: '8.3.37'
           # PHP 8.4 on the same Alpine base for apps not ready for 8.5 (Moodle 5.3,
           # Omeka S, FacturaScripts). Same PHP 8.4 release as the 3.23.x line.
           - php: '84'
             version: '8.4'
             suffix: '-php84'
-            min: '8.4.27'
+            min: '8.4.28'
     permissions:
       contents: write
       packages: write
