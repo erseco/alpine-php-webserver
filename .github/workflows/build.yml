@@ -182,6 +182,9 @@ jobs:
             PHP_SUFFIX=${{ matrix.php }}
             PHP_MIN_VERSION=${{ matrix.min }}
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
+          # Releases rebuild from scratch so they pick up Alpine security fixes
+          # (e.g. libxml2) that a cached apk layer would otherwise keep out.
+          no-cache: ${{ github.event_name == 'release' }}
           cache-from: type=gha,scope=php${{ matrix.php }}
           cache-to: type=gha,mode=max,scope=php${{ matrix.php }}
 
